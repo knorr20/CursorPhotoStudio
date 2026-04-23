@@ -1,35 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import WebsiteLayout from './pages/WebsiteLayout';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
-import AdminPanel from './components/AdminPanel';
-import AdminLoginPage from './components/AdminLoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useBookings } from './hooks/useBookings';
 import { useContactMessages } from './hooks/useContactMessages';
-import { supabase } from './lib/supabase';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
   const [pendingScrollTarget, setPendingScrollTarget] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAdminAuthenticated(!!session);
-      setAuthChecked(true);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAdminAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
   
   const STRIPE_PUBLISHABLE_KEY = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string) ?? '';
 
@@ -39,20 +21,13 @@ function App() {
     loading,
     error,
     clearError,
-    addBooking,
-    updatePayment,
-    updateBookingStatus,
-    updateBookingDetails,
-    deleteBooking
+    refetch: refetchBookings,
   } = useBookings();
 
   const {
-    contactMessages,
     loading: messagesLoading,
     error: messagesError,
     clearError: clearMessagesError,
-    updateContactMessageStatus,
-    deleteContactMessage
   } = useContactMessages();
 
   // Handle navigation and scrolling to sections
@@ -86,23 +61,6 @@ function App() {
     }
   }, [location.pathname, pendingScrollTarget]);
 
-  const handleAdminAccess = () => {
-    navigate('/admin/login');
-  };
-
-  const handleAdminLogin = () => {
-    navigate('/admin');
-  };
-
-  const handleBackToWebsite = () => {
-    supabase.auth.signOut();
-    navigate('/');
-  };
-
-  const declineBooking = (bookingId: number) => {
-    deleteBooking(bookingId);
-  };
-
   // Main routing
   return (
     <ErrorBoundary>
@@ -113,10 +71,8 @@ function App() {
           element={
             <WebsiteLayout
               bookings={bookings}
-              onAddBooking={(booking, honeypot) => addBooking(booking, honeypot)}
-              onUpdatePayment={(bookingId, paymentIntentId) => updatePayment(bookingId, paymentIntentId)}
+              onBookingFinalized={refetchBookings}
               stripePublishableKey={STRIPE_PUBLISHABLE_KEY}
-              onAdminAccess={handleAdminAccess}
               onNavigateAndScroll={handleNavigateAndScroll}
             />
           } 
@@ -136,44 +92,6 @@ function App() {
               onNavigateAndScroll={handleNavigateAndScroll}
             />
           } 
-        />
-        <Route 
-          path="/admin/login" 
-          element={
-            <AdminLoginPage 
-              onLogin={handleAdminLogin}
-              onBack={handleBackToWebsite}
-            />
-          } 
-        />
-        <Route
-          path="/admin"
-          element={
-            !authChecked ? (
-              <div className="min-h-screen bg-win95-gray flex items-center justify-center">
-                <div className="bg-white rounded-lg p-8 shadow-2xl text-center max-w-sm mx-4">
-                  <div className="w-16 h-16 border-4 border-gray-300 border-t-studio-green rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">Checking authentication...</p>
-                </div>
-              </div>
-            ) : isAdminAuthenticated ? (
-              <AdminPanel
-                onLogout={handleBackToWebsite}
-                bookings={bookings}
-                onUpdateBookingStatus={updateBookingStatus}
-                onDeclineBooking={declineBooking}
-                onUpdateBookingDetails={updateBookingDetails}
-                contactMessages={contactMessages}
-                onUpdateContactMessageStatus={updateContactMessageStatus}
-                onDeleteContactMessage={deleteContactMessage}
-              />
-            ) : (
-              <AdminLoginPage
-                onLogin={handleAdminLogin}
-                onBack={handleBackToWebsite}
-              />
-            )
-          }
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

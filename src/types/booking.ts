@@ -9,13 +9,16 @@ export interface Booking {
   clientPhone: string;
   projectType: string;
   totalPrice: number;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'cancelled';
   notes: string;
   receivePromotionalComms: boolean;
   agreedToTerms: boolean;
   termsAgreedAt: string | null;
   receivePromotionalCommsAt: string | null;
   createdAt: string;
+  stripePaymentIntentId?: string | null;
+  paymentStatus?: 'paid' | 'refunded';
+  receiptUrl?: string | null;
 }
 
 export interface BookingFormData {

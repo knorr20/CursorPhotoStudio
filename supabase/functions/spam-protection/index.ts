@@ -44,51 +44,6 @@ function checkTimeOverlap(
   return start1Value < end2Value && start2Value < end1Value;
 }
 
-async function checkBookingConflicts(
-  supabase: any,
-  date: string,
-  startTime: string,
-  endTime: string
-): Promise<{ hasConflict: boolean; conflictingBooking?: any }> {
-  try {
-    const { data: existingBookings, error } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("date", date)
-      .in("status", ["pending", "confirmed"]);
-
-    if (error) {
-      console.error("Error checking booking conflicts:", error);
-      throw error;
-    }
-
-    if (!existingBookings || existingBookings.length === 0) {
-      return { hasConflict: false };
-    }
-
-    for (const booking of existingBookings) {
-      if (
-        checkTimeOverlap(
-          startTime,
-          endTime,
-          booking.start_time,
-          booking.end_time
-        )
-      ) {
-        return {
-          hasConflict: true,
-          conflictingBooking: booking,
-        };
-      }
-    }
-
-    return { hasConflict: false };
-  } catch (error) {
-    console.error("Error in checkBookingConflicts:", error);
-    throw error;
-  }
-}
-
 async function checkRateLimit(
   supabase: any,
   ipAddress: string,
@@ -241,29 +196,37 @@ Deno.serve(async (req: Request) => {
 
     let result;
     if (type === "booking") {
-      const conflictCheck = await checkBookingConflicts(
-        supabase,
-        data.date,
-        data.startTime,
-        data.endTime
+      if (!data.date || !data.startTime || !data.endTime) {
+        return new Response(
+          JSON.stringify({ error: "Invalid booking precheck payload" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      const { data: existingBookings, error } = await supabase
+        .from("bookings")
+        .select("id, date, start_time, end_time")
+        .eq("date", data.date)
+        .eq("status", "confirmed");
+
+      if (error) throw error;
+
+      const conflict = (existingBookings ?? []).find((booking: any) =>
+        checkTimeOverlap(data.startTime, data.endTime, booking.start_time, booking.end_time)
       );
 
-      if (conflictCheck.hasConflict) {
-        const conflictingBooking = conflictCheck.conflictingBooking;
-        const conflictMessage = `This time slot is already booked. Another booking exists from ${conflictingBooking.start_time} to ${conflictingBooking.end_time} on ${conflictingBooking.date}. Please choose a different time slot.`;
-
-        console.log(
-          `Booking conflict detected for ${data.date} ${data.startTime}-${data.endTime}. Conflicting with booking ID: ${conflictingBooking.id}`
-        );
-
+      if (conflict) {
         return new Response(
           JSON.stringify({
-            error: conflictMessage,
+            error: "This time slot is already booked.",
             conflictDetails: {
-              date: conflictingBooking.date,
-              startTime: conflictingBooking.start_time,
-              endTime: conflictingBooking.end_time,
-              status: conflictingBooking.status,
+              bookingId: conflict.id,
+              date: conflict.date,
+              startTime: conflict.start_time,
+              endTime: conflict.end_time,
             },
           }),
           {
@@ -273,28 +236,7 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const { data: inserted, error } = await supabase.from("bookings").insert([
-        {
-          date: data.date,
-          start_time: data.startTime,
-          end_time: data.endTime,
-          duration: data.duration,
-          client_name: data.clientName,
-          client_email: data.clientEmail,
-          client_phone: data.clientPhone,
-          project_type: data.projectType,
-          total_price: data.totalPrice,
-          status: data.status || "pending",
-          notes: data.notes || "",
-          receive_promotional_comms: data.receivePromotionalComms || false,
-          agreed_to_terms: data.agreedToTerms || false,
-          terms_agreed_at: data.termsAgreedAt || null,
-          receive_promotional_comms_at: data.receivePromotionalCommsAt || null,
-        },
-      ]).select("id").single();
-
-      if (error) throw error;
-      result = { success: true, message: "Booking created successfully", bookingId: inserted.id };
+      result = { success: true, message: "Precheck passed" };
     } else if (type === "contact") {
       const { error } = await supabase.from("contact_messages").insert([
         {

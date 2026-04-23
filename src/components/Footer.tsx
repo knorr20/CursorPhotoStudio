@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Instagram, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
-  onAdminAccess: () => void;
   onNavigateAndScroll: (sectionId: string) => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ onAdminAccess, onNavigateAndScroll }) => {
+const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
   return (
     <footer className="bg-studio-green text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,14 +72,6 @@ const Footer: React.FC<FooterProps> = ({ onAdminAccess, onNavigateAndScroll }) =
               </li>
               <li><Link to="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-white transition-colors duration-200">Terms of Service</Link></li>
-              <li>
-                <button 
-                  onClick={onAdminAccess}
-                  className="hover:text-rich-yellow transition-colors duration-200 text-left"
-                >
-                  Admin Panel
-                </button>
-              </li>
             </ul>
           </div>
 

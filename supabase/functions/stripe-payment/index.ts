@@ -8,6 +8,194 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+type BookingPayload = {
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  projectType: string;
+  totalPrice: number;
+  notes: string;
+  receivePromotionalComms: boolean;
+  agreedToTerms: boolean;
+  termsAgreedAt: string | null;
+  receivePromotionalCommsAt: string | null;
+};
+
+const getTimeValue = (timeString: string): number => {
+  const [time, period] = timeString.split(" ");
+  const [hours, minutes] = time.split(":").map(Number);
+  let hour24 = hours;
+
+  if (period === "PM" && hours !== 12) {
+    hour24 += 12;
+  } else if (period === "AM" && hours === 12) {
+    hour24 = 0;
+  }
+
+  return hour24 * 60 + minutes;
+};
+
+const isWeekend = (dateString: string): boolean => {
+  const date = new Date(`${dateString}T00:00:00`);
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 6;
+};
+
+const calculatePrice = (date: string, startTime: string, endTime: string): number => {
+  const startValue = getTimeValue(startTime);
+  const endValue = getTimeValue(endTime);
+  if (endValue <= startValue) {
+    throw new Error("Invalid booking time range");
+  }
+
+  const durationMinutes = endValue - startValue;
+  if (durationMinutes < 120) {
+    throw new Error("Minimum booking is 2 hours");
+  }
+
+  const totalHours = durationMinutes / 60;
+  const weekend = isWeekend(date);
+  const hourlyRate = totalHours >= 5 ? (weekend ? 50 : 40) : (weekend ? 60 : 50);
+  return Math.round(totalHours * hourlyRate);
+};
+
+const overlaps = (startA: string, endA: string, startB: string, endB: string): boolean => {
+  const aStart = getTimeValue(startA);
+  const aEnd = getTimeValue(endA);
+  const bStart = getTimeValue(startB);
+  const bEnd = getTimeValue(endB);
+  return aStart < bEnd && bStart < aEnd;
+};
+
+const parseBookingDataFromMetadata = (metadata: Record<string, string>): BookingPayload => {
+  return {
+    date: metadata.date,
+    startTime: metadata.startTime,
+    endTime: metadata.endTime,
+    duration: metadata.duration,
+    clientName: metadata.clientName,
+    clientEmail: metadata.clientEmail,
+    clientPhone: metadata.clientPhone,
+    projectType: metadata.projectType,
+    totalPrice: Number(metadata.totalPrice),
+    notes: metadata.notes ?? "",
+    receivePromotionalComms: metadata.receivePromotionalComms === "true",
+    agreedToTerms: metadata.agreedToTerms === "true",
+    termsAgreedAt: metadata.termsAgreedAt || null,
+    receivePromotionalCommsAt: metadata.receivePromotionalCommsAt || null,
+  };
+};
+
+const buildSupabaseAdminClient = () => {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase not configured");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+};
+
+const finalizeBookingFromPaymentIntent = async (
+  supabase: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent
+) => {
+  const paymentIntentId = paymentIntent.id;
+
+  const { data: existingBooking, error: existingError } = await supabase
+    .from("bookings")
+    .select("id, status")
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error("Failed to check existing booking");
+  }
+
+  if (existingBooking) {
+    return { status: "already_finalized" as const, bookingId: existingBooking.id };
+  }
+
+  if (paymentIntent.status !== "succeeded") {
+    throw new Error("Payment not completed");
+  }
+
+  const bookingData = parseBookingDataFromMetadata(paymentIntent.metadata ?? {});
+  const serverCalculatedPrice = calculatePrice(bookingData.date, bookingData.startTime, bookingData.endTime);
+  if (serverCalculatedPrice !== bookingData.totalPrice) {
+    throw new Error("Booking amount mismatch");
+  }
+
+  if (paymentIntent.amount_received !== serverCalculatedPrice * 100) {
+    throw new Error("Stripe amount mismatch");
+  }
+
+  const { data: sameDayBookings, error: conflictsError } = await supabase
+    .from("bookings")
+    .select("id, start_time, end_time")
+    .eq("date", bookingData.date)
+    .eq("status", "confirmed");
+
+  if (conflictsError) {
+    throw new Error("Failed to check booking conflicts");
+  }
+
+  const conflict = (sameDayBookings ?? []).find((item) =>
+    overlaps(bookingData.startTime, bookingData.endTime, item.start_time, item.end_time)
+  );
+
+  if (conflict) {
+    return { status: "conflict_paid" as const, conflictingBookingId: conflict.id };
+  }
+
+  let receiptUrl: string | null = null;
+  if (paymentIntent.latest_charge) {
+    try {
+      const charge = await stripe.charges.retrieve(String(paymentIntent.latest_charge));
+      receiptUrl = charge.receipt_url ?? null;
+    } catch {
+      receiptUrl = null;
+    }
+  }
+
+  const { data: insertedBooking, error: insertError } = await supabase
+    .from("bookings")
+    .insert({
+      date: bookingData.date,
+      start_time: bookingData.startTime,
+      end_time: bookingData.endTime,
+      duration: bookingData.duration,
+      client_name: bookingData.clientName,
+      client_email: bookingData.clientEmail,
+      client_phone: bookingData.clientPhone,
+      project_type: bookingData.projectType,
+      total_price: bookingData.totalPrice,
+      status: "confirmed",
+      notes: bookingData.notes || "",
+      receive_promotional_comms: bookingData.receivePromotionalComms,
+      agreed_to_terms: bookingData.agreedToTerms,
+      terms_agreed_at: bookingData.termsAgreedAt,
+      receive_promotional_comms_at: bookingData.receivePromotionalCommsAt,
+      stripe_payment_intent_id: paymentIntentId,
+      payment_status: "paid",
+      receipt_url: receiptUrl,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    throw new Error("Failed to create confirmed booking");
+  }
+
+  return { status: "finalized" as const, bookingId: insertedBooking.id, receiptUrl };
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -30,12 +218,44 @@ Deno.serve(async (req: Request) => {
     }
 
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" });
+    const supabase = buildSupabaseAdminClient();
+
+    if (req.headers.get("stripe-signature")) {
+      const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+      if (!webhookSecret) {
+        return new Response("Webhook secret is not configured", { status: 500 });
+      }
+
+      const signature = req.headers.get("stripe-signature") ?? "";
+      const body = await req.text();
+      const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+
+      if (event.type === "payment_intent.succeeded") {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await finalizeBookingFromPaymentIntent(supabase, stripe, paymentIntent);
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
-    const { action, amount, bookingId, description, clientEmail, paymentIntentId } = body;
+    const { action, amount, description, clientEmail, paymentIntentId, bookingData } = body;
 
     if (action === "create_payment_intent") {
-      if (!amount || amount <= 0) {
+      if (!amount || amount <= 0 || !bookingData) {
         return new Response(JSON.stringify({ error: "Invalid amount" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const payload = bookingData as BookingPayload;
+      const serverCalculatedPrice = calculatePrice(payload.date, payload.startTime, payload.endTime);
+      if (serverCalculatedPrice !== amount || serverCalculatedPrice !== payload.totalPrice) {
+        return new Response(JSON.stringify({ error: "Price validation failed" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -44,79 +264,53 @@ Deno.serve(async (req: Request) => {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100),
         currency: "usd",
-        description: description ?? `Studio booking #${bookingId}`,
+        description: description ?? `Studio booking ${payload.date} ${payload.startTime}-${payload.endTime}`,
         receipt_email: clientEmail ?? undefined,
-        metadata: { bookingId: String(bookingId ?? "") },
+        metadata: {
+          date: payload.date,
+          startTime: payload.startTime,
+          endTime: payload.endTime,
+          duration: payload.duration,
+          clientName: payload.clientName,
+          clientEmail: payload.clientEmail,
+          clientPhone: payload.clientPhone,
+          projectType: payload.projectType,
+          totalPrice: String(payload.totalPrice),
+          notes: payload.notes ?? "",
+          receivePromotionalComms: String(payload.receivePromotionalComms),
+          agreedToTerms: String(payload.agreedToTerms),
+          termsAgreedAt: payload.termsAgreedAt ?? "",
+          receivePromotionalCommsAt: payload.receivePromotionalCommsAt ?? "",
+        },
         automatic_payment_methods: { enabled: true },
       });
 
       return new Response(
-        JSON.stringify({ clientSecret: paymentIntent.client_secret }),
+        JSON.stringify({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (action === "confirm_payment") {
-      if (!paymentIntentId || !bookingId) {
-        return new Response(JSON.stringify({ error: "Missing paymentIntentId or bookingId" }), {
+    if (action === "finalize_booking") {
+      if (!paymentIntentId) {
+        return new Response(JSON.stringify({ error: "Missing paymentIntentId" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Verify the payment intent actually succeeded with Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const result = await finalizeBookingFromPaymentIntent(supabase, stripe, paymentIntent);
 
-      if (paymentIntent.status !== "succeeded") {
-        return new Response(JSON.stringify({ error: "Payment not completed" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      // Get receipt URL from the charge if available
-      let receiptUrl: string | null = null;
-      if (paymentIntent.latest_charge) {
-        try {
-          const charge = await stripe.charges.retrieve(String(paymentIntent.latest_charge));
-          receiptUrl = charge.receipt_url ?? null;
-        } catch {
-          // non-critical
-        }
-      }
-
-      // Update the booking using service_role to bypass RLS
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-      if (!supabaseUrl || !serviceRoleKey) {
-        return new Response(JSON.stringify({ error: "Supabase not configured" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-      const { error: dbError } = await supabase
-        .from("bookings")
-        .update({
-          stripe_payment_intent_id: paymentIntentId,
-          payment_status: "paid",
-          receipt_url: receiptUrl,
-        })
-        .eq("id", bookingId);
-
-      if (dbError) {
-        console.error("DB update error:", dbError);
-        return new Response(JSON.stringify({ error: "Failed to update booking" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (result.status === "conflict_paid") {
+        return new Response(
+          JSON.stringify({ error: "Time slot conflict after successful payment", code: "conflict_paid" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       return new Response(
-        JSON.stringify({ success: true, receiptUrl }),
+        JSON.stringify({ success: true, bookingId: result.bookingId }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

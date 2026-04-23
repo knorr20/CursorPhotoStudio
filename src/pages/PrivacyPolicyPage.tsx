@@ -202,7 +202,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigateAndScro
         </div>
       </section>
 
-      <Footer onAdminAccess={() => {}} onNavigateAndScroll={onNavigateAndScroll} />
+      <Footer onNavigateAndScroll={onNavigateAndScroll} />
     </div>
   );
 };

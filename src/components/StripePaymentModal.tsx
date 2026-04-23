@@ -14,24 +14,36 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 interface StripePaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPaymentSuccess: (paymentIntentId: string) => void;
-  onPaymentSkip: () => void;
+  onPaymentSuccess: () => void;
   amount: number;
-  bookingId: number;
   clientEmail: string;
   description: string;
   stripePublishableKey: string;
+  bookingData: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    duration: string;
+    clientName: string;
+    clientEmail: string;
+    clientPhone: string;
+    projectType: string;
+    totalPrice: number;
+    notes: string;
+    receivePromotionalComms: boolean;
+    agreedToTerms: boolean;
+    termsAgreedAt: string | null;
+    receivePromotionalCommsAt: string | null;
+  };
 }
 
 // Inner form — must live inside <Elements>
 const CheckoutForm: React.FC<{
   amount: number;
-  bookingId: number;
+  paymentIntentId: string;
   clientSecret: string;
-  onPaymentSuccess: (paymentIntentId: string) => void;
-  onPaymentSkip: () => void;
-  onClose: () => void;
-}> = ({ amount, bookingId, clientSecret, onPaymentSuccess, onPaymentSkip, onClose }) => {
+  onPaymentSuccess: () => void;
+}> = ({ amount, paymentIntentId, clientSecret, onPaymentSuccess }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -64,17 +76,18 @@ const CheckoutForm: React.FC<{
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            action: 'confirm_payment',
+            action: 'finalize_booking',
             paymentIntentId: paymentIntent.id,
-            bookingId,
           }),
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error ?? 'Failed to save payment');
-      } catch {
-        // non-blocking — payment succeeded, just log update failed
+      } catch (err) {
+        setPaymentError(err instanceof Error ? err.message : 'Payment succeeded, but booking finalization failed.');
+        setIsProcessing(false);
+        return;
       }
-      onPaymentSuccess(paymentIntent.id);
+      onPaymentSuccess();
     } else {
       setPaymentError('Payment was not completed. Please try again.');
       setIsProcessing(false);
@@ -94,7 +107,7 @@ const CheckoutForm: React.FC<{
         </div>
         <div className="bg-gray-100 px-5 py-4 flex flex-col justify-center text-right border-l border-gray-200">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Booking</div>
-          <div className="text-lg font-bold text-gray-800">#{bookingId}</div>
+          <div className="text-lg font-bold text-gray-800">{paymentIntentId.slice(-8).toUpperCase()}</div>
         </div>
       </div>
 
@@ -158,20 +171,21 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
   isOpen,
   onClose,
   onPaymentSuccess,
-  onPaymentSkip,
   amount,
-  bookingId,
   clientEmail,
   description,
   stripePublishableKey,
+  bookingData,
 }) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [stripePromise] = useState(() => loadStripe(stripePublishableKey));
 
   useEffect(() => {
     if (!isOpen) {
       setClientSecret(null);
+      setPaymentIntentId(null);
       setInitError(null);
       return;
     }
@@ -187,21 +201,41 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
           body: JSON.stringify({
             action: 'create_payment_intent',
             amount,
-            bookingId,
             description,
             clientEmail,
+            bookingData,
           }),
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error ?? 'Failed to initialize payment');
         setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
       } catch (err) {
         setInitError(err instanceof Error ? err.message : 'Failed to initialize payment');
       }
     };
 
     create();
-  }, [isOpen, amount, bookingId, description, clientEmail]);
+  }, [
+    isOpen,
+    amount,
+    description,
+    clientEmail,
+    bookingData.date,
+    bookingData.startTime,
+    bookingData.endTime,
+    bookingData.duration,
+    bookingData.clientName,
+    bookingData.clientEmail,
+    bookingData.clientPhone,
+    bookingData.projectType,
+    bookingData.totalPrice,
+    bookingData.notes,
+    bookingData.receivePromotionalComms,
+    bookingData.agreedToTerms,
+    bookingData.termsAgreedAt,
+    bookingData.receivePromotionalCommsAt,
+  ]);
 
   if (!isOpen) return null;
 
@@ -261,14 +295,14 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
               },
             }}
           >
-            <CheckoutForm
-              amount={amount}
-              bookingId={bookingId}
-              clientSecret={clientSecret}
-              onPaymentSuccess={onPaymentSuccess}
-              onPaymentSkip={onPaymentSkip}
-              onClose={onClose}
-            />
+            {paymentIntentId ? (
+              <CheckoutForm
+                amount={amount}
+                paymentIntentId={paymentIntentId}
+                clientSecret={clientSecret}
+                onPaymentSuccess={onPaymentSuccess}
+              />
+            ) : null}
           </Elements>
         )}
       </div>

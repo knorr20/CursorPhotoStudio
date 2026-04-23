@@ -11,19 +11,15 @@ import { Booking } from '../types/booking';
 
 interface WebsiteLayoutProps {
   bookings: Booking[];
-  onAddBooking: (booking: Omit<Booking, 'id' | 'createdAt'>, honeypot?: string) => Promise<number>;
-  onUpdatePayment: (bookingId: number, paymentIntentId: string) => Promise<void>;
+  onBookingFinalized: () => Promise<void>;
   stripePublishableKey: string;
-  onAdminAccess: () => void;
   onNavigateAndScroll: (sectionId: string) => void;
 }
 
 const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
   bookings,
-  onAddBooking,
-  onUpdatePayment,
+  onBookingFinalized,
   stripePublishableKey,
-  onAdminAccess,
   onNavigateAndScroll,
 }) => {
   return (
@@ -36,21 +32,12 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
         <Equipment />
         <Calendar
           bookings={bookings}
-          onAddBooking={onAddBooking}
-          onUpdatePayment={onUpdatePayment}
+          onBookingFinalized={onBookingFinalized}
           stripePublishableKey={stripePublishableKey}
         />
         <Contact />
       </main>
-      <Footer onAdminAccess={onAdminAccess} onNavigateAndScroll={onNavigateAndScroll} />
-
-      <button
-        onClick={onAdminAccess}
-        className="fixed bottom-4 right-4 w-12 h-12 bg-studio-green text-white rounded-lg opacity-20 hover:opacity-100 transition-opacity duration-300"
-        title="Admin Access"
-      >
-        A
-      </button>
+      <Footer onNavigateAndScroll={onNavigateAndScroll} />
     </div>
   );
 };

@@ -13,12 +13,15 @@ export interface Database {
           client_phone: string;
           project_type: string;
           total_price: number;
-          status: 'confirmed' | 'pending' | 'cancelled';
+          status: 'confirmed' | 'cancelled';
           notes: string;
           receive_promotional_comms: boolean;
           agreed_to_terms: boolean;
           terms_agreed_at: string | null;
           receive_promotional_comms_at: string | null;
+          stripe_payment_intent_id: string | null;
+          payment_status: 'paid' | 'refunded';
+          receipt_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -32,12 +35,15 @@ export interface Database {
           client_phone: string;
           project_type: string;
           total_price: number;
-          status?: 'confirmed' | 'pending' | 'cancelled';
+          status?: 'confirmed' | 'cancelled';
           notes: string;
           receive_promotional_comms?: boolean;
           agreed_to_terms?: boolean;
           terms_agreed_at?: string | null;
           receive_promotional_comms_at?: string | null;
+          stripe_payment_intent_id?: string | null;
+          payment_status?: 'paid' | 'refunded';
+          receipt_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -51,12 +57,15 @@ export interface Database {
           client_phone?: string;
           project_type?: string;
           total_price?: number;
-          status?: 'confirmed' | 'pending' | 'cancelled';
+          status?: 'confirmed' | 'cancelled';
           notes?: string;
           receive_promotional_comms?: boolean;
           agreed_to_terms?: boolean;
           terms_agreed_at?: string | null;
           receive_promotional_comms_at?: string | null;
+          stripe_payment_intent_id?: string | null;
+          payment_status?: 'paid' | 'refunded';
+          receipt_url?: string | null;
           created_at?: string;
         };
       };

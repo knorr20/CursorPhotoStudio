@@ -81,8 +81,8 @@ export const checkBookingOverlap = (targetBooking: { date: string; startTime: st
       return false;
     }
     
-    // Only check bookings on the same date with pending or confirmed status
-    if (booking.date !== targetBooking.date || (booking.status !== 'pending' && booking.status !== 'confirmed')) {
+    // Only confirmed bookings block time slots.
+    if (booking.date !== targetBooking.date || booking.status !== 'confirmed') {
       return false;
     }
     

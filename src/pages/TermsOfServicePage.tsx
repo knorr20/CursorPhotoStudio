@@ -192,7 +192,7 @@ const TermsOfServicePage: React.FC<TermsOfServicePageProps> = ({ onNavigateAndSc
         </div>
       </section>
 
-      <Footer onAdminAccess={() => {}} onNavigateAndScroll={onNavigateAndScroll} />
+      <Footer onNavigateAndScroll={onNavigateAndScroll} />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, DollarSign, X, CheckCircle, User, Mail, Phone, FileText, Camera, AlertTriangle, Check } from 'lucide-react';
 import { Booking, BookingFormData } from '../types/booking';
 import BookingConfirmationModal from './BookingConfirmationModal';
@@ -10,12 +9,11 @@ import { formatPhoneNumber, isValidPhone } from '../utils/phoneFormat';
 
 interface CalendarProps {
   bookings: Booking[];
-  onAddBooking: (booking: Omit<Booking, 'id' | 'createdAt'>, honeypot?: string) => Promise<number>;
-  onUpdatePayment: (bookingId: number, paymentIntentId: string) => Promise<void>;
+  onBookingFinalized: () => Promise<void>;
   stripePublishableKey: string;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePayment, stripePublishableKey }) => {
+const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, stripePublishableKey }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
   const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
@@ -25,7 +23,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePay
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [confirmedBookingDetails, setConfirmedBookingDetails] = useState<Omit<Booking, 'id' | 'createdAt'> | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pendingBookingId, setPendingBookingId] = useState<number | null>(null);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [showConsentWarning, setShowConsentWarning] = useState(false);
   const [bookingFormData, setBookingFormData] = useState<BookingFormData>({
@@ -596,16 +593,13 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePay
         totalPrice: price.total,
         receivePromotionalComms: bookingFormData.receivePromotionalComms,
         agreedToTerms: agreedToTerms,
-        status: 'pending',
+        status: 'confirmed',
         notes: bookingFormData.notes,
         termsAgreedAt: agreedToTerms ? now : null,
         receivePromotionalCommsAt: bookingFormData.receivePromotionalComms ? now : null,
       };
 
-      const bookingId = await onAddBooking(newBooking, honeypotValue);
-
       setConfirmedBookingDetails(newBooking);
-      setPendingBookingId(bookingId ?? null);
       setPaymentCompleted(false);
       setShowPaymentModal(true);
 
@@ -634,7 +628,8 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePay
     }
   };
 
-  const handlePaymentSuccess = (_paymentIntentId: string) => {
+  const handlePaymentSuccess = async () => {
+    await onBookingFinalized();
     setShowPaymentModal(false);
     setPaymentCompleted(true);
     setShowConfirmationModal(true);
@@ -643,14 +638,12 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePay
   const handlePaymentClose = () => {
     setShowPaymentModal(false);
     setConfirmedBookingDetails(null);
-    setPendingBookingId(null);
     setPaymentCompleted(false);
   };
 
   const handleCloseConfirmationModal = () => {
     setShowConfirmationModal(false);
     setConfirmedBookingDetails(null);
-    setPendingBookingId(null);
     setPaymentCompleted(false);
   };
 
@@ -1222,16 +1215,30 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onAddBooking, onUpdatePay
       </div>
 
       {/* Stripe Payment Modal */}
-      {confirmedBookingDetails && pendingBookingId && (
+      {confirmedBookingDetails && (
         <StripePaymentModal
           isOpen={showPaymentModal}
           onClose={handlePaymentClose}
           onPaymentSuccess={handlePaymentSuccess}
-          onPaymentSkip={handlePaymentClose}
           amount={confirmedBookingDetails.totalPrice}
-          bookingId={pendingBookingId}
           clientEmail={confirmedBookingDetails.clientEmail}
           description={`Studio Rental – ${confirmedBookingDetails.date} ${confirmedBookingDetails.startTime}–${confirmedBookingDetails.endTime}`}
+          bookingData={{
+            date: confirmedBookingDetails.date,
+            startTime: confirmedBookingDetails.startTime,
+            endTime: confirmedBookingDetails.endTime,
+            duration: confirmedBookingDetails.duration,
+            clientName: confirmedBookingDetails.clientName,
+            clientEmail: confirmedBookingDetails.clientEmail,
+            clientPhone: confirmedBookingDetails.clientPhone,
+            projectType: confirmedBookingDetails.projectType,
+            totalPrice: confirmedBookingDetails.totalPrice,
+            notes: confirmedBookingDetails.notes,
+            receivePromotionalComms: confirmedBookingDetails.receivePromotionalComms,
+            agreedToTerms: confirmedBookingDetails.agreedToTerms,
+            termsAgreedAt: confirmedBookingDetails.termsAgreedAt,
+            receivePromotionalCommsAt: confirmedBookingDetails.receivePromotionalCommsAt,
+          }}
           stripePublishableKey={stripePublishableKey}
         />
       )}
