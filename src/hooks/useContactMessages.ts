@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ContactMessage } from '../types/contactMessage';
 
 export const useContactMessages = () => {
@@ -19,6 +19,13 @@ export const useContactMessages = () => {
   });
 
   const fetchContactMessages = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      setError(
+        'Missing Supabase environment variables. In Vercel add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for this environment, then redeploy.'
+      );
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -39,6 +46,11 @@ export const useContactMessages = () => {
 
   // Add a new contact message
   const addContactMessage = async (newMessage: Omit<ContactMessage, 'id' | 'createdAt'>, honeypot: string = '') => {
+    if (!isSupabaseConfigured) {
+      const msg = 'Missing Supabase environment variables. Configure Vercel and redeploy.';
+      setError(msg);
+      throw new Error(msg);
+    }
     try {
       // Use spam protection edge function instead of direct insert
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spam-protection`, {
@@ -71,6 +83,10 @@ export const useContactMessages = () => {
 
   // Update contact message status
   const updateContactMessageStatus = async (messageId: number, newStatus: 'new' | 'read' | 'archived') => {
+    if (!supabase) {
+      setError('Supabase is not configured.');
+      throw new Error('Supabase is not configured.');
+    }
     try {
       const { data, error } = await supabase
         .from('contact_messages')
@@ -100,6 +116,10 @@ export const useContactMessages = () => {
 
   // Delete contact message
   const deleteContactMessage = async (messageId: number) => {
+    if (!supabase) {
+      setError('Supabase is not configured.');
+      throw new Error('Supabase is not configured.');
+    }
     try {
       const { error } = await supabase
         .from('contact_messages')
@@ -126,6 +146,7 @@ export const useContactMessages = () => {
 
   // Set up real-time subscription
   useEffect(() => {
+    if (!supabase) return;
     const channel = supabase
       .channel('contact-messages-changes')
       .on(

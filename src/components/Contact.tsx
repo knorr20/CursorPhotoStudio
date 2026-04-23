@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, Navigation } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
-import { supabase } from '../lib/supabase';
 import { formatPhoneNumber } from '../utils/phoneFormat';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 

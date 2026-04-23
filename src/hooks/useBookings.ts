@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Booking } from '../types/booking';
 
 export const useBookings = () => {
@@ -31,6 +31,13 @@ export const useBookings = () => {
   });
 
   const fetchBookings = useCallback(async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      setError(
+        'Missing Supabase environment variables. In Vercel add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for this environment, then redeploy (Clear build cache if needed).'
+      );
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -52,13 +59,16 @@ export const useBookings = () => {
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   useEffect(() => {
+    if (!supabase) return;
     const channel = supabase
       .channel('bookings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
         fetchBookings();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchBookings]);
 
   return {
