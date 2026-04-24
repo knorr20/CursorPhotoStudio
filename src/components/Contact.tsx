@@ -138,10 +138,11 @@ const Contact = () => {
             {/* Studio Image */}
             <div className="mt-8 overflow-hidden">
               <img
-                src="/23photostudio copy.jpg"
-                alt="23 Photo Studio Interior"
+                src="https://23photostudio.com/23photostudio.jpg"
+                alt="23 Photo Studio exterior"
                 className="w-full h-48 object-cover"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
