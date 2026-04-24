@@ -132,8 +132,12 @@ const finalizeBookingFromPaymentIntent = async (
     throw new Error("Booking amount mismatch");
   }
 
-  if (paymentIntent.amount_received !== serverCalculatedPrice * 100) {
-    throw new Error("Stripe amount mismatch");
+  const expectedCents = Math.round(serverCalculatedPrice * 100);
+  // Use PI.amount (charged total in cents); amount_received can be unset/zero in edge cases before settlement.
+  if (paymentIntent.amount !== expectedCents) {
+    throw new Error(
+      `Payment amount mismatch: expected ${expectedCents}¢ charged, Stripe paymentIntent.amount=${paymentIntent.amount}`
+    );
   }
 
   const { data: sameDayBookings, error: conflictsError } = await supabase
@@ -190,7 +194,10 @@ const finalizeBookingFromPaymentIntent = async (
     .single();
 
   if (insertError) {
-    throw new Error("Failed to create confirmed booking");
+    console.error("booking insert:", insertError);
+    throw new Error(
+      `Failed to create confirmed booking: ${insertError.message}${insertError.details ? ` — ${insertError.details}` : ""}`
+    );
   }
 
   return { status: "finalized" as const, bookingId: insertedBooking.id, receiptUrl };
@@ -323,18 +330,36 @@ Deno.serve(async (req: Request) => {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("stripe-payment error:", err);
-    const msg = err instanceof Error ? err.message : "";
-    const isConfig = msg.includes("Supabase not configured");
-    return new Response(
-      JSON.stringify({
-        error: isConfig ? msg : "Internal server error",
-      }),
-      {
-        status: isConfig ? 503 : 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    const raw =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message?: string }).message)
+          : String(err);
+
+    let status = 500;
+    if (raw.includes("Supabase not configured")) status = 503;
+    else if (
+      raw.includes("Price validation") ||
+      raw.includes("Invalid amount") ||
+      raw.includes("Minimum booking") ||
+      raw.includes("Payment amount mismatch") ||
+      raw.includes("Booking amount mismatch") ||
+      raw.includes("Missing paymentIntentId") ||
+      raw.includes("Missing ")
+    )
+      status = 400;
+
+    const body =
+      raw.trim().length > 0 && raw !== "[object Object]"
+        ? raw
+        : "Internal server error";
+
+    return new Response(JSON.stringify({ error: body }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
