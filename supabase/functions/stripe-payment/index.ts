@@ -224,7 +224,27 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" });
+    const trimmed = stripeSecretKey.trim();
+    if (trimmed.startsWith("pk_")) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "STRIPE_SECRET_KEY is set to a publishable key (pk_...). Use your Stripe secret key (sk_test_... or sk_live_...) in Supabase Edge Function secrets, not VITE_STRIPE_PUBLISHABLE_KEY.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (!trimmed.startsWith("sk_")) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "STRIPE_SECRET_KEY must start with sk_ (secret key from Stripe Dashboard → Developers → API keys).",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const stripe = new Stripe(trimmed, { apiVersion: "2024-06-20" });
 
     // Only load Supabase admin client when DB access is required (webhook / finalize).
     // create_payment_intent uses Stripe only — avoids 500 when service role isn't wired yet.
