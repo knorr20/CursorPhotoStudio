@@ -218,7 +218,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" });
-    const supabase = buildSupabaseAdminClient();
+
+    // Only load Supabase admin client when DB access is required (webhook / finalize).
+    // create_payment_intent uses Stripe only — avoids 500 when service role isn't wired yet.
 
     if (req.headers.get("stripe-signature")) {
       const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
@@ -227,11 +229,12 @@ Deno.serve(async (req: Request) => {
       }
 
       const signature = req.headers.get("stripe-signature") ?? "";
-      const body = await req.text();
-      const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      const rawBody = await req.text();
+      const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
 
       if (event.type === "payment_intent.succeeded") {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const supabase = buildSupabaseAdminClient();
         await finalizeBookingFromPaymentIntent(supabase, stripe, paymentIntent);
       }
 
@@ -299,6 +302,7 @@ Deno.serve(async (req: Request) => {
         });
       }
 
+      const supabase = buildSupabaseAdminClient();
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       const result = await finalizeBookingFromPaymentIntent(supabase, stripe, paymentIntent);
 
@@ -321,9 +325,16 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("stripe-payment error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const msg = err instanceof Error ? err.message : "";
+    const isConfig = msg.includes("Supabase not configured");
+    return new Response(
+      JSON.stringify({
+        error: isConfig ? msg : "Internal server error",
+      }),
+      {
+        status: isConfig ? 503 : 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 });
