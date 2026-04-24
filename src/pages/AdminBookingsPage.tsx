@@ -130,19 +130,22 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, Booking[]>();
-    activeBookings.forEach((booking) => {
+    bookings.forEach((booking) => {
       const existing = map.get(booking.date) ?? [];
       existing.push(booking);
       map.set(booking.date, existing);
     });
     return map;
-  }, [activeBookings]);
+  }, [bookings]);
 
   const dayBookings = useMemo(
     () =>
       (bookingsByDate.get(selectedDate) ?? [])
         .slice()
-        .sort((a, b) => getTimeValue(a.startTime) - getTimeValue(b.startTime)),
+        .sort((a, b) => {
+          if (a.status !== b.status) return a.status === 'cancelled' ? 1 : -1;
+          return getTimeValue(a.startTime) - getTimeValue(b.startTime);
+        }),
     [bookingsByDate, selectedDate]
   );
 
@@ -326,6 +329,26 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
     }
   };
 
+  const reactivateBooking = async (booking: Booking) => {
+    clearFeedback();
+
+    const conflict = hasConflict(booking.date, booking.startTime, booking.endTime, booking.id);
+    if (conflict) {
+      setFeedbackError('This slot is already taken by another client.');
+      return;
+    }
+
+    try {
+      ensureSupabase();
+      const { error } = await supabase!.from('bookings').update({ status: 'confirmed' }).eq('id', booking.id);
+      if (error) throw error;
+      setFeedbackSuccess('Booking is active again.');
+      await onRefresh();
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : 'Failed to reactivate booking.');
+    }
+  };
+
   const navigateMonth = (direction: 'prev' | 'next') => {
     const next = new Date(currentMonth);
     next.setMonth(currentMonth.getMonth() + (direction === 'next' ? 1 : -1));
@@ -406,8 +429,10 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
 
                 const dateKey = formatDate(dateObj);
                 const dayEntries = bookingsByDate.get(dateKey) ?? [];
-                const paidCount = dayEntries.filter((b) => !!b.stripePaymentIntentId).length;
-                const manualCount = dayEntries.filter((b) => !b.stripePaymentIntentId).length;
+                const activeDayEntries = dayEntries.filter((b) => b.status !== 'cancelled');
+                const paidCount = activeDayEntries.filter((b) => !!b.stripePaymentIntentId).length;
+                const manualCount = activeDayEntries.filter((b) => !b.stripePaymentIntentId).length;
+                const cancelledCount = dayEntries.length - activeDayEntries.length;
                 const isSelected = dateKey === selectedDate;
 
                 return (
@@ -426,7 +451,7 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
                   >
                     <div className="text-sm font-bold">{dateObj.getDate()}</div>
                     <div className={`mt-2 text-[11px] ${isSelected ? 'text-slate-200' : 'text-slate-500'}`}>
-                      {dayEntries.length ? `${dayEntries.length} booking(s)` : 'Available'}
+                      {activeDayEntries.length ? `${activeDayEntries.length} active` : 'Available'}
                     </div>
                     {!!paidCount && (
                       <div className={`text-[11px] ${isSelected ? 'text-sky-200' : 'text-sky-700'}`}>
@@ -436,6 +461,11 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
                     {!!manualCount && (
                       <div className={`text-[11px] ${isSelected ? 'text-amber-200' : 'text-amber-700'}`}>
                         Manual: {manualCount}
+                      </div>
+                    )}
+                    {!!cancelledCount && (
+                      <div className={`text-[11px] ${isSelected ? 'text-rose-200' : 'text-rose-700'}`}>
+                        Cancelled: {cancelledCount}
                       </div>
                     )}
                   </button>
@@ -452,7 +482,10 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
                 <Clock3 className="h-4 w-4 text-slate-600" />
                 <div>
                   <div className="text-slate-500">Bookings today</div>
-                  <div className="font-semibold">{dayBookings.length}</div>
+                  <div className="font-semibold">
+                    {dayBookings.filter((b) => b.status !== 'cancelled').length} active /{' '}
+                    {dayBookings.filter((b) => b.status === 'cancelled').length} cancelled
+                  </div>
                 </div>
               </div>
               <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 inline-flex gap-2 items-center">
@@ -611,14 +644,15 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
           )}
 
           {!dayBookings.length ? (
-            <p className="text-sm text-slate-500">No confirmed bookings/blocks for this date.</p>
+            <p className="text-sm text-slate-500">No bookings for this date.</p>
           ) : (
             <div className="space-y-3">
               {dayBookings.map((booking) => {
                 const isPaid = !!booking.stripePaymentIntentId;
+                const isCancelled = booking.status === 'cancelled';
                 const isEditing = editingBookingId === booking.id && !!editForm;
                 return (
-                  <article key={booking.id} className="border border-slate-200 rounded p-4">
+                  <article key={booking.id} className={`border rounded p-4 ${isCancelled ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200'}`}>
                     {!isEditing ? (
                       <>
                         <div className="flex flex-wrap gap-2 items-center justify-between">
@@ -632,6 +666,9 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
                             <span className={`text-xs px-2 py-1 rounded ${isPaid ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
                               {isPaid ? 'Stripe Paid' : 'Manual'}
                             </span>
+                            <span className={`text-xs px-2 py-1 rounded ${isCancelled ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                              {isCancelled ? 'Cancelled' : 'Active'}
+                            </span>
                             <span className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-700">
                               ${booking.totalPrice}
                             </span>
@@ -643,22 +680,34 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
                         {booking.notes && <p className="text-xs text-slate-500 mt-1">{booking.notes}</p>}
 
                         <div className="mt-3 flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(booking)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-slate-300 hover:bg-slate-50"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => cancelBooking(booking)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-red-300 text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Cancel
-                          </button>
+                          {!isCancelled ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => startEdit(booking)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-slate-300 hover:bg-slate-50"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => cancelBooking(booking)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-red-300 text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => reactivateBooking(booking)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                            >
+                              Make Active
+                            </button>
+                          )}
                         </div>
                       </>
                     ) : (
