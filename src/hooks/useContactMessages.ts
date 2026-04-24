@@ -1,24 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ContactMessage } from '../types/contactMessage';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export const useContactMessages = () => {
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Convert database row to ContactMessage type
-  const convertDbRowToContactMessage = (row: any): ContactMessage => ({
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    phone: row.phone,
-    message: row.message,
-    status: (row.status || 'new') as 'new' | 'read' | 'archived',
-    createdAt: row.created_at
+  const convertDbRowToContactMessage = (row: Record<string, unknown>): ContactMessage => ({
+    id: row.id as number,
+    name: row.name as string,
+    email: row.email as string,
+    phone: row.phone as string | null,
+    message: row.message as string,
+    status: ((row.status as string) || 'new') as 'new' | 'read' | 'archived',
+    createdAt: row.created_at as string,
   });
 
-  const fetchContactMessages = async () => {
+  /** contact_messages RLS: SELECT only for authenticated. Never query as anon. */
+  const fetchContactMessages = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase) {
       setError(
         'Missing Supabase environment variables. In Vercel add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for this environment, then redeploy.'
@@ -26,14 +27,26 @@ export const useContactMessages = () => {
       setLoading(false);
       return;
     }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setContactMessages([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error: qError } = await supabase
         .from('contact_messages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (qError) throw qError;
 
       setContactMessages(data?.map(convertDbRowToContactMessage) || []);
       setError(null);
@@ -42,9 +55,8 @@ export const useContactMessages = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Add a new contact message
   const addContactMessage = async (newMessage: Omit<ContactMessage, 'id' | 'createdAt'>, honeypot: string = '') => {
     if (!isSupabaseConfigured) {
       const msg = 'Missing Supabase environment variables. Configure Vercel and redeploy.';
@@ -52,28 +64,26 @@ export const useContactMessages = () => {
       throw new Error(msg);
     }
     try {
-      // Use spam protection edge function instead of direct insert
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spam-protection`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           type: 'contact',
           data: newMessage,
-          honeypot: honeypot
-        })
+          honeypot: honeypot,
+        }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to send message');
       }
 
-      // Refresh messages list to get the new message
       await fetchContactMessages();
-      
+
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add contact message');
@@ -81,30 +91,25 @@ export const useContactMessages = () => {
     }
   };
 
-  // Update contact message status
   const updateContactMessageStatus = async (messageId: number, newStatus: 'new' | 'read' | 'archived') => {
     if (!supabase) {
       setError('Supabase is not configured.');
       throw new Error('Supabase is not configured.');
     }
     try {
-      const { data, error } = await supabase
+      const { data, error: uError } = await supabase
         .from('contact_messages')
         .update({ status: newStatus })
         .eq('id', messageId)
         .select();
 
-      if (error) {
-        throw error;
+      if (uError) {
+        throw uError;
       }
 
       if (data && data.length > 0) {
-        const convertedMessage = convertDbRowToContactMessage(data[0]);
-        setContactMessages(prev =>
-          prev.map(message =>
-            message.id === messageId ? convertedMessage : message
-          )
-        );
+        const convertedMessage = convertDbRowToContactMessage(data[0] as Record<string, unknown>);
+        setContactMessages((prev) => prev.map((message) => (message.id === messageId ? convertedMessage : message)));
         return convertedMessage;
       }
       return null;
@@ -114,72 +119,101 @@ export const useContactMessages = () => {
     }
   };
 
-  // Delete contact message
   const deleteContactMessage = async (messageId: number) => {
     if (!supabase) {
       setError('Supabase is not configured.');
       throw new Error('Supabase is not configured.');
     }
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .delete()
-        .eq('id', messageId);
+      const { error: dError } = await supabase.from('contact_messages').delete().eq('id', messageId);
 
-      if (error) {
-        throw error;
+      if (dError) {
+        throw dError;
       }
 
-      setContactMessages(prev =>
-        prev.filter(message => message.id !== messageId)
-      );
+      setContactMessages((prev) => prev.filter((message) => message.id !== messageId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete contact message');
       throw err;
     }
   };
 
-  // Initial fetch
   useEffect(() => {
-    fetchContactMessages();
-  }, []);
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
 
-  // Set up real-time subscription
-  useEffect(() => {
-    if (!supabase) return;
-    const channel = supabase
-      .channel('contact-messages-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contact_messages'
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT' && payload.new) {
-            const newMessage = convertDbRowToContactMessage(payload.new);
-            setContactMessages(prev => [newMessage, ...prev]);
-          } else if (payload.eventType === 'UPDATE' && payload.new) {
-            const updatedMessage = convertDbRowToContactMessage(payload.new);
-            setContactMessages(prev =>
-              prev.map(message =>
-                message.id === updatedMessage.id ? updatedMessage : message
-              )
-            );
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            setContactMessages(prev =>
-              prev.filter(message => message.id !== payload.old.id)
-            );
+    let channel: RealtimeChannel | null = null;
+
+    const removeRealtime = () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+    };
+
+    const attachRealtime = () => {
+      removeRealtime();
+      channel = supabase
+        .channel('contact-messages-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'contact_messages',
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT' && payload.new) {
+              const newMessage = convertDbRowToContactMessage(payload.new as Record<string, unknown>);
+              setContactMessages((prev) => [newMessage, ...prev]);
+            } else if (payload.eventType === 'UPDATE' && payload.new) {
+              const updatedMessage = convertDbRowToContactMessage(payload.new as Record<string, unknown>);
+              setContactMessages((prev) =>
+                prev.map((message) => (message.id === updatedMessage.id ? updatedMessage : message))
+              );
+            } else if (payload.eventType === 'DELETE' && payload.old) {
+              const oldRow = payload.old as { id?: number };
+              if (oldRow.id != null) {
+                setContactMessages((prev) => prev.filter((message) => message.id !== oldRow.id));
+              }
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    };
+
+    const sync = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        removeRealtime();
+        setContactMessages([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      await fetchContactMessages();
+      attachRealtime();
+    };
+
+    void sync();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void sync();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      removeRealtime();
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchContactMessages, supabase]);
 
   return {
     contactMessages,
@@ -189,6 +223,6 @@ export const useContactMessages = () => {
     addContactMessage,
     updateContactMessageStatus,
     deleteContactMessage,
-    refetch: fetchContactMessages
+    refetch: fetchContactMessages,
   };
 };
