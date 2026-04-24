@@ -31,9 +31,13 @@ function App() {
   } = useBookings();
 
   const {
+    contactMessages,
     loading: messagesLoading,
     error: messagesError,
     clearError: clearMessagesError,
+    refetch: refetchMessages,
+    updateContactMessageStatus,
+    deleteContactMessage,
   } = useContactMessages();
 
   // Handle navigation and scrolling to sections
@@ -132,6 +136,13 @@ function App() {
               <AdminBookingsPage
                 bookings={bookings}
                 onRefresh={refetchBookings}
+                contactMessages={contactMessages}
+                messagesLoading={messagesLoading}
+                messagesError={messagesError}
+                onClearMessagesError={clearMessagesError}
+                onRefreshMessages={refetchMessages}
+                onUpdateMessageStatus={updateContactMessageStatus}
+                onDeleteMessage={deleteContactMessage}
                 onSignOut={async () => {
                   if (!supabase) return;
                   await supabase.auth.signOut();
@@ -146,7 +157,7 @@ function App() {
       </Routes>
 
       {/* Loading Overlay */}
-      {(loading || messagesLoading) && (
+      {(loading || (messagesLoading && location.pathname !== '/admin')) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 shadow-2xl text-center max-w-sm mx-4">
             <div className="w-16 h-16 border-4 border-gray-300 border-t-studio-green rounded-full animate-spin mx-auto mb-4"></div>
@@ -157,7 +168,7 @@ function App() {
       )}
 
       {/* Error Overlay */}
-      {(error || messagesError) && (
+      {(error || (messagesError && location.pathname !== '/admin')) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 shadow-2xl text-center max-w-md mx-4">
             <div className="text-red-600 mb-4">

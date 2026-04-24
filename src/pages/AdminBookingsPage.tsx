@@ -1,17 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowLeft,
+  Archive,
   Calendar,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
   Clock3,
+  Inbox,
+  Mail,
   Pencil,
   Plus,
+  RefreshCw,
   ShieldAlert,
   Trash2,
 } from 'lucide-react';
 import { Booking } from '../types/booking';
+import { ContactMessage } from '../types/contactMessage';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { calculateDuration } from '../utils/bookingCalculations';
 
@@ -19,6 +24,16 @@ interface AdminBookingsPageProps {
   bookings: Booking[];
   onRefresh: () => Promise<void>;
   onSignOut: () => Promise<void>;
+  contactMessages: ContactMessage[];
+  messagesLoading: boolean;
+  messagesError: string | null;
+  onClearMessagesError: () => void;
+  onRefreshMessages: () => Promise<void>;
+  onUpdateMessageStatus: (
+    messageId: number,
+    newStatus: 'new' | 'read' | 'archived'
+  ) => Promise<ContactMessage | null>;
+  onDeleteMessage: (messageId: number) => Promise<void>;
 }
 
 type ManualType = 'manual_booking' | 'manual_block';
@@ -98,7 +113,20 @@ const getMonthGrid = (monthDate: Date) => {
   return cells;
 };
 
-const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefresh, onSignOut }) => {
+const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({
+  bookings,
+  onRefresh,
+  onSignOut,
+  contactMessages,
+  messagesLoading,
+  messagesError,
+  onClearMessagesError,
+  onRefreshMessages,
+  onUpdateMessageStatus,
+  onDeleteMessage,
+}) => {
+  const [adminTab, setAdminTab] = useState<'bookings' | 'messages'>('bookings');
+  const [msgFilter, setMsgFilter] = useState<'all' | 'new' | 'read' | 'archived'>('all');
   const [selectedDate, setSelectedDate] = useState<string>(todayString());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isSaving, setIsSaving] = useState(false);
@@ -122,6 +150,16 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
 
   const monthGrid = useMemo(() => getMonthGrid(currentMonth), [currentMonth]);
+
+  const newMessageCount = useMemo(
+    () => contactMessages.filter((m) => m.status === 'new').length,
+    [contactMessages]
+  );
+
+  const filteredMessages = useMemo(() => {
+    if (msgFilter === 'all') return contactMessages;
+    return contactMessages.filter((m) => m.status === msgFilter);
+  }, [contactMessages, msgFilter]);
 
   const activeBookings = useMemo(
     () => bookings.filter((booking) => booking.status !== 'cancelled'),
@@ -362,7 +400,7 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
           <div>
             <h1 className="text-2xl font-bold">Admin Booking Console</h1>
             <p className="text-sm text-slate-600 mt-1">
-              Calendar view, manual blocks/bookings, edit time slots, and cancel reservations.
+              Bookings calendar, contact form inbox, and manual studio blocks.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -383,6 +421,39 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-3">
+          <button
+            type="button"
+            onClick={() => setAdminTab('bookings')}
+            className={`px-4 py-2 text-sm font-semibold rounded transition ${
+              adminTab === 'bookings'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            Bookings
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdminTab('messages')}
+            className={`px-4 py-2 text-sm font-semibold rounded transition inline-flex items-center gap-2 ${
+              adminTab === 'messages'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Inbox className="h-4 w-4" />
+            Messages
+            {newMessageCount > 0 && (
+              <span className="text-xs font-bold bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded min-w-[1.25rem] text-center">
+                {newMessageCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {adminTab === 'bookings' && (
+        <>
         <div className="grid xl:grid-cols-[1.3fr_1fr] gap-6">
           <section className="bg-white border border-slate-200 rounded p-5">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -821,6 +892,153 @@ const AdminBookingsPage: React.FC<AdminBookingsPageProps> = ({ bookings, onRefre
             </div>
           )}
         </section>
+        </>
+        )}
+
+        {adminTab === 'messages' && (
+          <section className="bg-white border border-slate-200 rounded p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 className="text-lg font-semibold inline-flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Contact messages
+              </h2>
+              <button
+                type="button"
+                onClick={() => void onRefreshMessages()}
+                disabled={messagesLoading}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${messagesLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              Messages from the site contact form are stored in <code className="text-xs bg-slate-100 px-1">contact_messages</code>.
+            </p>
+
+            {messagesError && (
+              <div className="mb-4 text-sm rounded border border-red-300 bg-red-50 text-red-700 px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+                <span>{messagesError}</span>
+                <button
+                  type="button"
+                  onClick={onClearMessagesError}
+                  className="text-xs font-semibold underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(['all', 'new', 'read', 'archived'] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setMsgFilter(f)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded capitalize ${
+                    msgFilter === f ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            {messagesLoading ? (
+              <div className="flex items-center justify-center gap-2 py-16 text-slate-500 text-sm">
+                <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                Loading messages...
+              </div>
+            ) : !filteredMessages.length ? (
+              <p className="text-sm text-slate-500">No messages in this filter.</p>
+            ) : (
+              <div className="space-y-4">
+                {filteredMessages.map((msg) => (
+                  <article
+                    key={msg.id}
+                    className="border border-slate-200 rounded p-4 hover:border-slate-300 transition"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-slate-900">{msg.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {new Date(msg.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded font-semibold ${
+                          msg.status === 'new'
+                            ? 'bg-amber-100 text-amber-900'
+                            : msg.status === 'read'
+                              ? 'bg-sky-100 text-sky-900'
+                              : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {msg.status}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-sm text-slate-700">
+                      <a href={`mailto:${msg.email}`} className="text-slate-900 underline">
+                        {msg.email}
+                      </a>
+                      {msg.phone && (
+                        <span className="text-slate-500">
+                          {' '}
+                          · {msg.phone}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-3 text-sm text-slate-800 whitespace-pre-wrap border-t border-slate-100 pt-3">
+                      {msg.message}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {msg.status === 'new' && (
+                        <button
+                          type="button"
+                          onClick={() => void onUpdateMessageStatus(msg.id, 'read')}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded border border-slate-300 hover:bg-slate-50"
+                        >
+                          Mark read
+                        </button>
+                      )}
+                      {msg.status !== 'archived' && (
+                        <button
+                          type="button"
+                          onClick={() => void onUpdateMessageStatus(msg.id, 'archived')}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded border border-slate-300 text-slate-800 hover:bg-slate-50"
+                        >
+                          <Archive className="h-3.5 w-3.5" />
+                          Archive
+                        </button>
+                      )}
+                      {msg.status === 'archived' && (
+                        <button
+                          type="button"
+                          onClick={() => void onUpdateMessageStatus(msg.id, 'read')}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded border border-slate-300 hover:bg-slate-50"
+                        >
+                          Unarchive (mark read)
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!window.confirm('Delete this message permanently?')) return;
+                          void onDeleteMessage(msg.id);
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded border border-red-300 text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );
