@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -49,6 +49,34 @@ const CheckoutForm: React.FC<{
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const readyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const elementReadyRef = useRef(false);
+
+  useEffect(() => {
+    setIsReady(false);
+    elementReadyRef.current = false;
+    setPaymentError(null);
+    if (readyTimerRef.current) clearTimeout(readyTimerRef.current);
+    readyTimerRef.current = setTimeout(() => {
+      if (!elementReadyRef.current) {
+        setPaymentError(
+          'Payment form is taking too long. Check: (1) VITE_STRIPE_PUBLISHABLE_KEY must be from the same Stripe account as STRIPE_SECRET_KEY on the server, both test mode or both live. (2) Browser console / ad blocker blocking Stripe.'
+        );
+      }
+    }, 25000);
+    return () => {
+      if (readyTimerRef.current) clearTimeout(readyTimerRef.current);
+    };
+  }, [clientSecret, paymentIntentId]);
+
+  const handlePaymentElementReady = () => {
+    elementReadyRef.current = true;
+    if (readyTimerRef.current) {
+      clearTimeout(readyTimerRef.current);
+      readyTimerRef.current = null;
+    }
+    setIsReady(true);
+  };
 
   const handlePay = async () => {
     if (!stripe || !elements) return;
@@ -111,18 +139,16 @@ const CheckoutForm: React.FC<{
         </div>
       </div>
 
-      {/* Loading state */}
-      {!isReady && (
-        <div className="flex items-center justify-center gap-2 py-8 text-gray-400 text-sm">
-          <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-          Preparing payment form...
-        </div>
-      )}
-
-      {/* Stripe PaymentElement — shows Apple Pay, Google Pay, card, etc. */}
-      <div className={isReady ? 'mb-5' : 'opacity-0 h-0 overflow-hidden'}>
+      {/* Keep min height so Stripe iframe can mount; h-0 prevented onReady from ever firing in some browsers */}
+      <div className="mb-5 relative min-h-[140px]">
+        {!isReady && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/90 text-gray-500 text-sm">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            Preparing payment form...
+          </div>
+        )}
         <PaymentElement
-          onReady={() => setIsReady(true)}
+          onReady={handlePaymentElementReady}
           options={{
             layout: { type: 'tabs', defaultCollapsed: false },
             wallets: { applePay: 'auto', googlePay: 'auto' },
@@ -180,7 +206,13 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
-  const [stripePromise] = useState(() => loadStripe(stripePublishableKey));
+  const publishableOk = Boolean(stripePublishableKey?.trim());
+  const [stripePromise] = useState(() =>
+    publishableOk ? loadStripe(stripePublishableKey) : Promise.resolve(null)
+  );
+
+  const missingPublishableMessage =
+    'Stripe publishable key is missing. In Vercel → Project → Settings → Environment Variables add VITE_STRIPE_PUBLISHABLE_KEY with your pk_test_... (or pk_live_...) from Stripe Dashboard → Developers → API keys. It must be the same Stripe account as STRIPE_SECRET_KEY (sk_...) in Supabase. Redeploy after saving.';
 
   useEffect(() => {
     if (!isOpen) {
@@ -189,6 +221,8 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
       setInitError(null);
       return;
     }
+
+    if (!stripePublishableKey?.trim()) return;
 
     const create = async () => {
       try {
@@ -265,11 +299,18 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
           </button>
         </div>
 
-        {initError ? (
+        {!publishableOk ? (
           <div className="p-6">
             <div className="bg-red-50 border border-red-200 p-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700 text-sm">{initError}</p>
+              <p className="text-red-700 text-sm whitespace-pre-wrap">{missingPublishableMessage}</p>
+            </div>
+          </div>
+        ) : initError ? (
+          <div className="p-6">
+            <div className="bg-red-50 border border-red-200 p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700 text-sm whitespace-pre-wrap">{initError}</p>
             </div>
           </div>
         ) : !clientSecret ? (

@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import type { Session } from '@supabase/supabase-js';
 import WebsiteLayout from './pages/WebsiteLayout';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import NotFoundPage from './pages/NotFoundPage';
+import AdminBookingsPage from './pages/AdminBookingsPage';
+import AdminLoginCard from './components/AdminLoginCard';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useBookings } from './hooks/useBookings';
 import { useContactMessages } from './hooks/useContactMessages';
+import { supabase } from './lib/supabase';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [pendingScrollTarget, setPendingScrollTarget] = useState<string | null>(null);
+  const [adminSession, setAdminSession] = useState<Session | null>(null);
+  const [adminAuthLoading, setAdminAuthLoading] = useState(true);
   
   const STRIPE_PUBLISHABLE_KEY = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string) ?? '';
 
@@ -61,6 +67,28 @@ function App() {
     }
   }, [location.pathname, pendingScrollTarget]);
 
+  React.useEffect(() => {
+    if (!supabase) {
+      setAdminAuthLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      setAdminSession(data.session ?? null);
+      setAdminAuthLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAdminSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   // Main routing
   return (
     <ErrorBoundary>
@@ -92,6 +120,27 @@ function App() {
               onNavigateAndScroll={handleNavigateAndScroll}
             />
           } 
+        />
+        <Route
+          path="/admin"
+          element={
+            adminAuthLoading ? (
+              <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-700">
+                Checking admin session...
+              </div>
+            ) : adminSession ? (
+              <AdminBookingsPage
+                bookings={bookings}
+                onRefresh={refetchBookings}
+                onSignOut={async () => {
+                  if (!supabase) return;
+                  await supabase.auth.signOut();
+                }}
+              />
+            ) : (
+              <AdminLoginCard />
+            )
+          }
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

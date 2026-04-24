@@ -95,10 +95,14 @@ const buildSupabaseAdminClient = () => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Supabase not configured");
+    throw new Error(
+      "Supabase not configured for Edge Function: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. In Dashboard → Edge Functions → Secrets, add SUPABASE_SERVICE_ROLE_KEY (service_role from Settings → API) if your project does not inject it automatically."
+    );
   }
 
-  return createClient(supabaseUrl, serviceRoleKey);
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 };
 
 const finalizeBookingFromPaymentIntent = async (
@@ -107,17 +111,33 @@ const finalizeBookingFromPaymentIntent = async (
   paymentIntent: Stripe.PaymentIntent
 ) => {
   const paymentIntentId = paymentIntent.id;
+  if (!paymentIntentId) {
+    throw new Error("Payment intent has no id");
+  }
 
-  const { data: existingBooking, error: existingError } = await supabase
+  const { error: pingError } = await supabase.from("bookings").select("id").limit(1);
+  if (pingError) {
+    console.error("finalize: bookings table ping", pingError);
+    throw new Error(
+      `Cannot access bookings table: ${pingError.message}${pingError.code ? ` (${pingError.code})` : ""}. Check SUPABASE_SERVICE_ROLE_KEY and that the bookings table exists.`
+    );
+  }
+
+  // Use limit(1) instead of maybeSingle(): avoids PostgREST PGRST116 when duplicate rows exist.
+  const { data: existingRows, error: existingError } = await supabase
     .from("bookings")
     .select("id, status")
     .eq("stripe_payment_intent_id", paymentIntentId)
-    .maybeSingle();
+    .limit(1);
 
   if (existingError) {
-    throw new Error("Failed to check existing booking");
+    console.error("finalize: existing booking lookup", existingError);
+    throw new Error(
+      `Failed to check existing booking: ${existingError.message}${existingError.code ? ` (${existingError.code})` : ""}. If this mentions a missing column, run pending Supabase migrations (stripe_payment_intent_id on bookings).`
+    );
   }
 
+  const existingBooking = existingRows?.[0];
   if (existingBooking) {
     return { status: "already_finalized" as const, bookingId: existingBooking.id };
   }
@@ -147,7 +167,10 @@ const finalizeBookingFromPaymentIntent = async (
     .eq("status", "confirmed");
 
   if (conflictsError) {
-    throw new Error("Failed to check booking conflicts");
+    console.error("finalize: conflicts query", conflictsError);
+    throw new Error(
+      `Failed to check booking conflicts: ${conflictsError.message}${conflictsError.code ? ` (${conflictsError.code})` : ""}`
+    );
   }
 
   const conflict = (sameDayBookings ?? []).find((item) =>
