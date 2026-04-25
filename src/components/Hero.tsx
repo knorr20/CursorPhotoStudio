@@ -32,10 +32,6 @@ const Hero = () => {
           <span className="block text-gray-300 font-heading">PHOTO STUDIO</span>
         </h1>
 
-        <p className="text-base sm:text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-          Profoto lighting kit · North Hollywood · from $40/hr
-        </p>
-
         <button
           onClick={() => setShowDirectionsModal(true)}
           className="flex items-center justify-center gap-2 text-sm text-white mb-8 hover:text-rich-yellow transition-colors duration-200 cursor-pointer underline decoration-1 underline-offset-2 hover:decoration-rich-yellow mx-auto"
