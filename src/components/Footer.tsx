@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Instagram, ArrowRight, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
   onNavigateAndScroll: (sectionId: string) => void;
@@ -131,16 +131,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
             <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
           </div>
 
-          <div className="mt-4 text-center">
-            <a
-              href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm font-heading font-black uppercase text-white/85 hover:text-rich-yellow transition-colors duration-200"
-            >
-              Yelp Reviews Coming Next
-              <ExternalLink className="h-4 w-4" />
-            </a>
+          <div className="mt-4 flex justify-center">
+            <div className="elfsight-app-992218c6-6472-4a93-bd93-cf3d8b9f308a" data-elfsight-app-lazy />
           </div>
         </div>
 
