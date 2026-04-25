@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Instagram, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, ArrowRight, ExternalLink, Star } from 'lucide-react';
 
 interface FooterProps {
   onNavigateAndScroll: (sectionId: string) => void;
@@ -122,24 +122,53 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
               </a>
             </div>
 
-            <div className="mt-6 border border-white/15 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-wider text-gray-300 mb-3">Verified Business Profiles</p>
-              <div className="space-y-2">
+            <div className="mt-6">
+              <p className="text-xs uppercase tracking-wider text-gray-300 mb-3">Trusted Reviews</p>
+              <div className="space-y-3">
                 <a
                   href="https://www.google.com/maps?cid=2516701744026527069"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-sm text-white hover:text-rich-yellow transition-colors duration-200"
+                  className="group block border border-white/20 bg-white/5 hover:bg-white/10 transition-all duration-200 p-3"
+                  aria-label="Open Google Business Profile reviews"
                 >
-                  Google Business Profile
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-heading font-black text-white uppercase">Google Business Profile</div>
+                      <div className="flex items-center gap-1 mt-1 text-rich-yellow">
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                      </div>
+                      <p className="text-xs text-gray-300 mt-1">See our verified location, reviews, and latest updates.</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-rich-yellow transition-colors duration-200 flex-shrink-0 mt-0.5" />
+                  </div>
                 </a>
+
                 <a
                   href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-sm text-white hover:text-rich-yellow transition-colors duration-200"
+                  className="group block border border-white/20 bg-white/5 hover:bg-white/10 transition-all duration-200 p-3"
+                  aria-label="Open Yelp reviews"
                 >
-                  Yelp Reviews
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-heading font-black text-white uppercase">Yelp Reviews</div>
+                      <div className="flex items-center gap-1 mt-1 text-rich-yellow">
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                      </div>
+                      <p className="text-xs text-gray-300 mt-1">Read client experiences and recent studio feedback on Yelp.</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-rich-yellow transition-colors duration-200 flex-shrink-0 mt-0.5" />
+                  </div>
                 </a>
               </div>
             </div>
