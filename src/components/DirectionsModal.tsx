@@ -55,7 +55,7 @@ const DirectionsModal: React.FC<DirectionsModalProps> = ({ isOpen, onClose, addr
             <div className="flex flex-col items-center text-center gap-3">
               <MapPin className="h-5 w-5 text-gray-600 mt-0.5" />
               <div>
-                <div className="font-semibold text-gray-900 mb-1">23 FILMS STUDIO</div>
+                <div className="font-semibold text-gray-900 mb-1">23 PHOTO STUDIO</div>
                 <div className="text-gray-600 text-sm">{address}</div>
               </div>
             </div>

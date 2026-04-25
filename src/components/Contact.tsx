@@ -289,7 +289,7 @@ const Contact = () => {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 className=""
-                title="FILMS Studio Location"
+                title="23 Photo Studio Location"
               />
             </div>
             <button

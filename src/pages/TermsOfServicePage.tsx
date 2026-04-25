@@ -13,6 +13,33 @@ const TermsOfServicePage: React.FC<TermsOfServicePageProps> = ({ onNavigateAndSc
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Terms of Service | 23 Photo Studio North Hollywood';
+
+    const setMeta = (name: string, content: string) => {
+      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.name = name;
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    const setCanonical = (href: string) => {
+      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'canonical';
+        document.head.appendChild(link);
+      }
+      link.href = href;
+    };
+
+    setMeta(
+      'description',
+      'Review the Terms of Service for 23 Photo Studio rentals in North Hollywood, including booking, payments, cancellation, and studio rules.'
+    );
+    setCanonical('https://23photostudio.com/terms');
   }, []);
 
   return (

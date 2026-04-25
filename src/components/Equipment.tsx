@@ -72,7 +72,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "High-quality audio for shoots",
       imageSrc: "/bose speaker.png",
-      altText: "Bose Bluetooth Speaker for studio audio in Los Angeles, Burbank - perfect for music during photo and video shoots at FILMS Studio"
+      altText: "Bose Bluetooth Speaker for studio audio in Los Angeles, Burbank - perfect for music during photo shoots at 23 Photo Studio"
     },
     {
       icon: <Monitor className="h-6 w-6" />,
@@ -80,7 +80,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "Background support system",
       imageSrc: "/BACKGROUNDS.png",
-      altText: "Professional backdrop holder and stands system for photography and video production at FILMS Studio in North Hollywood, Los Angeles - supports seamless paper rolls and fabric backgrounds"
+      altText: "Professional backdrop holder and stands system for photography at 23 Photo Studio in North Hollywood, Los Angeles - supports seamless paper rolls and fabric backgrounds"
     }
   ];
 

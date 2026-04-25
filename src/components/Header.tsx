@@ -46,11 +46,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
           <button
             onClick={() => onNavigateAndScroll('home')}
             className="hover:opacity-80 transition-opacity duration-200"
-            aria-label="Go to FILMS Studio homepage"
+            aria-label="Go to 23 Photo Studio homepage"
           >
             <img
               src="/IMG_2896-2.png"
-              alt="FILMS Studio logo - Professional photo and video studio rental North Hollywood"
+              alt="23 Photo Studio logo - Professional photo studio rental North Hollywood"
               className={`h-10 w-auto transition-all duration-300 ${showSolid ? '' : 'brightness-0 invert'}`}
             />
           </button>

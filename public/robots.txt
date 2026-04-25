@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 
-Sitemap: https://filmsstudio.com/sitemap.xml
+Sitemap: https://23photostudio.com/sitemap.xml

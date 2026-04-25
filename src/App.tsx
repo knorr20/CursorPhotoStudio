@@ -72,6 +72,16 @@ function App() {
   }, [location.pathname, pendingScrollTarget]);
 
   React.useEffect(() => {
+    let robots = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.name = 'robots';
+      document.head.appendChild(robots);
+    }
+    robots.content = location.pathname === '/admin' ? 'noindex, nofollow' : 'index, follow';
+  }, [location.pathname]);
+
+  React.useEffect(() => {
     if (!supabase) {
       setAdminAuthLoading(false);
       return;

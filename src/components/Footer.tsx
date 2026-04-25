@@ -16,7 +16,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
             <div className="flex items-center space-x-3 mb-4">
               <img 
                 src="/IMG_2896-2.png" 
-                alt="FILMS Studio logo - Professional photo and video studio rental in North Hollywood, Los Angeles" 
+                alt="23 Photo Studio logo - Professional photo studio rental in North Hollywood, Los Angeles" 
                 className="h-12 w-auto brightness-0 invert"
               />
             </div>
