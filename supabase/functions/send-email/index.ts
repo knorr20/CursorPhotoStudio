@@ -19,6 +19,10 @@ function getOutboundMailConfig(): { from: string; replyTo: string } {
 }
 const STUDIO_ADDRESS = "10710 Burbank Blvd, North Hollywood, CA 91601";
 const STUDIO_PHONE = "(818) 974-45-76";
+/** Client-facing booking questions (mailto / tel in client confirmation email) */
+const CLIENT_INQUIRY_EMAIL = "la23production@gmail.com";
+const CLIENT_INQUIRY_PHONE_DISPLAY = "+1 (213) 335-9103";
+const CLIENT_INQUIRY_PHONE_TEL = "+12133359103";
 const STUDIO_INSTAGRAM = "https://www.instagram.com/23rental/";
 const GOOGLE_MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=10710+Burbank+Blvd+North+Hollywood+CA+91601";
@@ -83,14 +87,15 @@ function buildBookingClientEmail(booking: BookingData): string {
 
         <!-- Status Badge -->
         <tr><td style="padding:32px 40px 0;text-align:center;">
-          <span style="display:inline-block;background-color:${COLORS.beige};color:${COLORS.green};font-size:13px;font-weight:600;padding:6px 20px;border-radius:20px;letter-spacing:0.5px;">BOOKING RECEIVED</span>
+          <span style="display:inline-block;background-color:${COLORS.beige};color:${COLORS.green};font-size:13px;font-weight:600;padding:6px 20px;border-radius:20px;letter-spacing:0.5px;">PAYMENT RECEIVED</span>
         </td></tr>
 
         <!-- Greeting -->
         <tr><td style="padding:24px 40px 0;">
-          <h2 style="margin:0;color:${COLORS.green};font-size:22px;font-weight:600;">Thank you, ${booking.client_name}!</h2>
-          <p style="margin:12px 0 0;color:#3f3f46;font-size:15px;line-height:1.6;">
-            Your booking request has been received and is being reviewed. We will confirm your reservation shortly.
+          <h2 style="margin:0;color:${COLORS.green};font-size:22px;font-weight:600;">Thank you, ${booking.client_name}.</h2>
+          <p style="margin:12px 0 0;color:#3f3f46;font-size:15px;line-height:1.65;">
+            Your payment is complete and we have your session on file. We're syncing this booking with our live studio calendar now.
+            <strong style="font-weight:600;color:#27272a;">You should consider the time below your plan unless we reach out</strong>—we only contact guests if we spot a rare overlap or need a small schedule adjustment.
           </p>
         </td></tr>
 
@@ -121,6 +126,9 @@ function buildBookingClientEmail(booking: BookingData): string {
                   <td style="padding:6px 0;color:${COLORS.green};font-size:18px;font-weight:700;">$${booking.total_price}</td>
                 </tr>
               </table>
+              <p style="margin:16px 0 0;color:${COLORS.grayText};font-size:13px;line-height:1.55;">
+                If anything needs to change, we'll message you promptly with options.
+              </p>
             </td></tr>
           </table>
         </td></tr>
@@ -138,9 +146,12 @@ function buildBookingClientEmail(booking: BookingData): string {
 
         <!-- Contact Info -->
         <tr><td style="padding:0 40px 32px;text-align:center;">
-          <p style="margin:0;color:${COLORS.grayText};font-size:13px;line-height:1.6;">
-            Questions? Reach us at <a href="tel:+18189744576" style="color:${COLORS.green};text-decoration:none;font-weight:500;">${STUDIO_PHONE}</a>
-            or <a href="mailto:${ADMIN_EMAIL}" style="color:${COLORS.green};text-decoration:none;font-weight:500;">${ADMIN_EMAIL}</a>
+          <p style="margin:0;color:${COLORS.grayText};font-size:13px;line-height:1.65;">
+            If you have any questions or need to clarify anything, email us at
+            <a href="mailto:${CLIENT_INQUIRY_EMAIL}" style="color:${COLORS.green};text-decoration:none;font-weight:600;">${CLIENT_INQUIRY_EMAIL}</a>
+            or call
+            <a href="tel:${CLIENT_INQUIRY_PHONE_TEL}" style="color:${COLORS.green};text-decoration:none;font-weight:600;">${CLIENT_INQUIRY_PHONE_DISPLAY}</a>
+            (on your phone, tap the number to dial).
           </p>
         </td></tr>
 
