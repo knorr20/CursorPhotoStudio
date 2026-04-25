@@ -127,40 +127,20 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
 
         <div className="border-t border-gray-800 mt-12 pt-8">
           <h3 className="text-center text-xl font-heading font-black uppercase mb-5">Client Reviews</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div className="border border-white/20 bg-white/5 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-heading font-black uppercase text-white">Google Reviews</p>
-                <a
-                  href="https://www.google.com/maps?cid=2516701744026527069"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-300 hover:text-rich-yellow transition-colors duration-200 inline-flex items-center gap-1"
-                >
-                  Open profile
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-              <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
-            </div>
+          <div className="flex justify-center">
+            <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
+          </div>
 
-            <div className="border border-white/20 bg-white/5 p-4 flex flex-col justify-between">
-              <div>
-                <p className="text-sm font-heading font-black uppercase text-white mb-2">Yelp Reviews (Coming Next)</p>
-                <p className="text-sm text-gray-300">
-                  We are preparing a live Yelp feed in this spot. In the meantime, you can view all reviews directly on Yelp.
-                </p>
-              </div>
-              <a
-                href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:text-rich-yellow hover:border-rich-yellow/60 transition-colors duration-200 py-2.5 px-4 text-sm font-heading font-black uppercase"
-              >
-                View Yelp Page
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
+          <div className="mt-4 text-center">
+            <a
+              href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-heading font-black uppercase text-white/85 hover:text-rich-yellow transition-colors duration-200"
+            >
+              Yelp Reviews Coming Next
+              <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
         </div>
 
