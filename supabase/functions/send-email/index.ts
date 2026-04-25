@@ -9,6 +9,14 @@ const corsHeaders = {
 
 const ADMIN_EMAIL = "LA23PRODUCTION@GMAIL.COM";
 const STUDIO_NAME = "23 Production LLC";
+/** Verified domain in Resend; override with secret RESEND_FROM if needed. */
+const DEFAULT_RESEND_FROM = `${STUDIO_NAME} <contact@23photostudio.com>`;
+
+function getOutboundMailConfig(): { from: string; replyTo: string } {
+  const from = Deno.env.get("RESEND_FROM")?.trim() || DEFAULT_RESEND_FROM;
+  const replyTo = Deno.env.get("RESEND_REPLY_TO")?.trim() || ADMIN_EMAIL;
+  return { from, replyTo };
+}
 const STUDIO_ADDRESS = "10710 Burbank Blvd, North Hollywood, CA 91601";
 const STUDIO_PHONE = "(818) 974-45-76";
 const STUDIO_INSTAGRAM = "https://www.instagram.com/23rental/";
@@ -218,6 +226,8 @@ function buildContactAdminEmail(contact: ContactData): string {
 
 async function sendEmail(
   resendApiKey: string,
+  from: string,
+  replyTo: string,
   to: string,
   subject: string,
   html: string
@@ -230,7 +240,8 @@ async function sendEmail(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${STUDIO_NAME} <onboarding@resend.dev>`,
+        from,
+        reply_to: replyTo,
         to: [to],
         subject,
         html,
@@ -292,6 +303,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const { from, replyTo } = getOutboundMailConfig();
     const results: { recipient: string; success: boolean; error?: string }[] = [];
 
     if (type === "booking") {
@@ -299,6 +311,8 @@ Deno.serve(async (req: Request) => {
 
       const clientResult = await sendEmail(
         resendApiKey,
+        from,
+        replyTo,
         booking.client_email,
         `Booking Confirmation - ${formatDate(booking.date)}`,
         buildBookingClientEmail(booking)
@@ -307,6 +321,8 @@ Deno.serve(async (req: Request) => {
 
       const adminResult = await sendEmail(
         resendApiKey,
+        from,
+        replyTo,
         ADMIN_EMAIL,
         `New Booking: ${booking.client_name} - ${formatDate(booking.date)}`,
         buildBookingAdminEmail(booking)
@@ -317,6 +333,8 @@ Deno.serve(async (req: Request) => {
 
       const adminResult = await sendEmail(
         resendApiKey,
+        from,
+        replyTo,
         ADMIN_EMAIL,
         `New Message from ${contact.name}`,
         buildContactAdminEmail(contact)

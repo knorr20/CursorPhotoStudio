@@ -30,6 +30,34 @@ function getTimeValue(timeString: string): number {
   return hour24 * 60 + minutes;
 }
 
+/** Best-effort admin + template mail via send-email. Does not throw. */
+async function invokeSendEmail(payload: {
+  type: "booking" | "contact";
+  data: Record<string, unknown>;
+}): Promise<void> {
+  const baseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!baseUrl || !serviceKey) {
+    console.error("invokeSendEmail: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    return;
+  }
+  try {
+    const res = await fetch(`${baseUrl}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.error("invokeSendEmail failed", res.status, await res.text());
+    }
+  } catch (e) {
+    console.error("invokeSendEmail error", e);
+  }
+}
+
 function checkTimeOverlap(
   start1: string,
   end1: string,
@@ -249,6 +277,17 @@ Deno.serve(async (req: Request) => {
       ]);
 
       if (error) throw error;
+
+      await invokeSendEmail({
+        type: "contact",
+        data: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone || "",
+          message: data.message,
+        },
+      });
+
       result = { success: true, message: "Message sent successfully" };
     }
 

@@ -45,6 +45,34 @@ const isWeekend = (dateString: string): boolean => {
   return dayOfWeek === 0 || dayOfWeek === 6;
 };
 
+/** Best-effort: notifies admin + client via send-email (Resend). Does not throw. */
+async function invokeSendEmail(payload: {
+  type: "booking" | "contact";
+  data: Record<string, unknown>;
+}): Promise<void> {
+  const baseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!baseUrl || !serviceKey) {
+    console.error("invokeSendEmail: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    return;
+  }
+  try {
+    const res = await fetch(`${baseUrl}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.error("invokeSendEmail failed", res.status, await res.text());
+    }
+  } catch (e) {
+    console.error("invokeSendEmail error", e);
+  }
+}
+
 const calculatePrice = (date: string, startTime: string, endTime: string): number => {
   const startValue = getTimeValue(startTime);
   const endValue = getTimeValue(endTime);
@@ -222,6 +250,24 @@ const finalizeBookingFromPaymentIntent = async (
       `Failed to create confirmed booking: ${insertError.message}${insertError.details ? ` — ${insertError.details}` : ""}`
     );
   }
+
+  await invokeSendEmail({
+    type: "booking",
+    data: {
+      id: insertedBooking.id,
+      date: bookingData.date,
+      start_time: bookingData.startTime,
+      end_time: bookingData.endTime,
+      duration: bookingData.duration,
+      client_name: bookingData.clientName,
+      client_email: bookingData.clientEmail,
+      client_phone: bookingData.clientPhone,
+      project_type: bookingData.projectType,
+      total_price: bookingData.totalPrice,
+      status: "confirmed",
+      notes: bookingData.notes || "",
+    },
+  });
 
   return { status: "finalized" as const, bookingId: insertedBooking.id, receiptUrl };
 };
