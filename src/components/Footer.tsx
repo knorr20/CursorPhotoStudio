@@ -130,10 +130,6 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
           <div className="flex justify-center">
             <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
           </div>
-
-          <div className="mt-4 flex justify-center">
-            <div className="elfsight-app-992218c6-6472-4a93-bd93-cf3d8b9f308a" data-elfsight-app-lazy />
-          </div>
         </div>
 
         {/* Book CTA */}
