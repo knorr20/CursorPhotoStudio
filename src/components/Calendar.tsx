@@ -1,9 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Clock, DollarSign, X, CheckCircle, User, Mail, Phone, FileText, Camera, AlertTriangle, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, DollarSign, X, CheckCircle, User, Mail, Phone, FileText, Camera, AlertTriangle, Check, Pencil } from 'lucide-react';
 import { Booking, BookingFormData } from '../types/booking';
 import BookingConfirmationModal from './BookingConfirmationModal';
 import StripePaymentModal from './StripePaymentModal';
 import TermsAndPrivacyLinks from './TermsAndPrivacyLinks';
+import BookingStepsIndicator from './BookingStepsIndicator';
+import MobileBookingBar from './MobileBookingBar';
 import { getTimeValue, isWeekend, calculateDuration, calculatePrice } from '../utils/bookingCalculations';
 import { formatPhoneNumber, isValidPhone } from '../utils/phoneFormat';
 
@@ -79,8 +81,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     setFieldTouched(prev => ({ ...prev, [name]: true }));
   };
 
-  // Ref for the time selection section
+  // Refs for scrolling between booking steps
   const timeSelectionRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   const timeSlots = [
     '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -656,19 +659,82 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
 
   const { duration, price } = getDurationAndPrice();
 
+  const currentStep: 1 | 2 | 3 = showPaymentModal ? 3 : showBookingForm ? 2 : 1;
+
+  const selectedDateLabel = selectedDate
+    ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '';
+
+  const selectedTimeLabel = selectedStartTime && selectedEndTime
+    ? `${selectedStartTime} – ${selectedEndTime}${duration.text ? ` · ${duration.text}` : ''}`
+    : selectedStartTime
+    ? `${selectedStartTime} – pick end time`
+    : null;
+
+  const mobileBarDisabledReason = !isBookingValid()
+    ? 'Select a start and end time'
+    : !agreedToTerms
+    ? 'Agree to terms to continue'
+    : '';
+
+  const handleEditDate = () => {
+    setShowBookingForm(false);
+    setSelectedStartTime(null);
+    setSelectedEndTime(null);
+    setShowConsentWarning(false);
+    setTimeout(() => {
+      calendarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
+  const handleEditTime = () => {
+    setShowBookingForm(false);
+    setShowConsentWarning(false);
+    setTimeout(() => {
+      timeSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
   return (
-    <section id="booking" className="pt-10 pb-20 bg-gray-50 scroll-mt-16">
+    <section id="booking" className="pt-10 pb-28 md:pb-20 bg-gray-50 scroll-mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h2 className="text-4xl font-heading font-black text-gray-900 mb-4 uppercase">Book Your Studio Time</h2>
-          <p className="text-sm text-gray-600 font-heading font-black uppercase">Your Booking Is Starting Here</p>
+          <h2 className="text-4xl font-heading font-black text-gray-900 mb-3 uppercase">Book Your Studio Time</h2>
+          <p className="text-base text-gray-600 max-w-xl mx-auto">
+            Pick a date and time below — booking takes about a minute.
+          </p>
+          <BookingStepsIndicator currentStep={currentStep} />
         </div>
 
         <div className="max-w-6xl mx-auto">
           {/* Calendar */}
-          <div>
-            <h3 className="text-2xl font-heading font-black text-gray-900 mb-6 text-center">Select Date</h3>
-            
+          <div ref={calendarRef} className="scroll-mt-20">
+            <div className="text-center mb-4">
+              <div className="text-xs font-heading font-black uppercase tracking-wider text-studio-green mb-1">Step 1</div>
+              <h3 className="text-2xl font-heading font-black text-gray-900 uppercase">Pick your date</h3>
+            </div>
+
+            <div className="max-w-4xl mx-auto mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600">
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-studio-green" />
+                <span>Open 8 AM – 7 PM</span>
+              </span>
+              <span className="hidden sm:inline text-gray-300">|</span>
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-studio-green" />
+                <span>2-hour minimum</span>
+              </span>
+              <span className="hidden sm:inline text-gray-300">|</span>
+              <span className="inline-flex items-center gap-1.5">
+                <DollarSign className="h-4 w-4 text-studio-green" />
+                <span>From $40/hr · Best price 5+ hours</span>
+              </span>
+            </div>
+
             <div className="bg-white shadow-xl p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-4 sm:mb-8">
                 <button
@@ -705,7 +771,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                   const isWeekendDay = isWeekend(day);
                   const booking = getBookingForDate(day);
                   
-                  let buttonClasses = 'aspect-square p-1 sm:p-2 md:p-4 text-sm sm:text-base md:text-lg font-semibold transition-all duration-200 relative min-h-[40px] sm:min-h-[50px] md:min-h-[60px] flex items-center justify-center ';
+                  let buttonClasses = 'aspect-square p-1 sm:p-2 md:p-4 text-sm sm:text-base md:text-lg font-semibold transition-all duration-200 relative min-h-[44px] sm:min-h-[50px] md:min-h-[60px] flex items-center justify-center ';
                   let isClickable = false;
                   
                   if (!day) {
@@ -802,30 +868,40 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
 
           {/* Time Selection */}
           {selectedDate && !showBookingForm && (
-            <div ref={timeSelectionRef} className="bg-white shadow-xl p-8 max-w-4xl mx-auto scroll-mt-20">
-              <h3 className="text-2xl font-heading font-black text-gray-900 mb-4 text-center uppercase">SET TIME FROM-TO</h3>
-              
-              <div className="text-center p-6 bg-gray-50 mb-8">
-                <div className="text-xl font-heading font-black text-gray-900">
-                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+            <div ref={timeSelectionRef} className="bg-white shadow-xl p-6 sm:p-8 max-w-4xl mx-auto scroll-mt-20 mt-6">
+              <div className="text-center mb-4">
+                <div className="text-xs font-heading font-black uppercase tracking-wider text-studio-green mb-1">Step 1 cont.</div>
+                <h3 className="text-2xl font-heading font-black text-gray-900 uppercase">Pick start and end time</h3>
+              </div>
+
+              <div className="text-center p-5 sm:p-6 bg-gray-50 mb-6">
+                <div className="text-lg sm:text-xl font-heading font-black text-gray-900">
+                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}
                 </div>
-                <div className="text-lg text-gray-600 mt-2">
-                  {isWeekend(parseInt(selectedDate.split('-')[2])) ? 'Weekend Rate' : 'Weekday Rate'}
+                <div className="text-sm sm:text-base text-gray-600 mt-2">
+                  {isWeekend(parseInt(selectedDate.split('-')[2]))
+                    ? 'Weekend Rate · $50–$60/hr'
+                    : 'Weekday Rate · $40–$50/hr'}
                 </div>
               </div>
 
+              {/* Info Text — shown BEFORE the grid so the rules are clear up front */}
+              <div className="text-center text-xs text-gray-500 uppercase tracking-wide mb-4">
+                2-hour minimum • Studio closes at 7 PM • For best price rent 5+ hours
+              </div>
+
               {/* Time Slots Grid */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                   {timeSlots.map((time) => {
                     const status = getTimeSlotStatus(time);
                     const label = getTimeSlotLabel(time, status);
-                    
+
                     return (
                       <button
                         key={time}
@@ -847,12 +923,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                     );
                   })}
                 </div>
-              </div>
-
-              {/* Duration and Price Display */}
-              {/* Info Text */}
-              <div className="text-center text-xs text-gray-500 uppercase tracking-wide mb-4">
-                2-hour minimum • Studio closes at 7 PM • For best price rent 5+ hours
               </div>
 
               {selectedStartTime && selectedEndTime && duration.text && (
@@ -927,7 +997,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                     </label>
                   </div>
                   <div className={`transition-all duration-300 ${
-                    showConsentWarning && !agreedToTerms ? 'animate-pulse' : ''
+                    showConsentWarning && !agreedToTerms ? 'motion-safe:animate-pulse' : ''
                   }`}>
                     <label className={`inline-flex items-start cursor-pointer transition-colors duration-300 ${
                       showConsentWarning && !agreedToTerms ? 'text-red-600' : 'text-gray-700'
@@ -966,7 +1036,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
               <button
                 onClick={handleProceedToBooking}
                 disabled={!isBookingValid()}
-                className={`w-full mt-6 py-4 px-6 text-lg font-semibold transition-all duration-200 font-heading font-black ${
+                className={`w-full mt-6 py-4 px-6 text-lg uppercase transition-all duration-200 font-heading font-black ${
                   isBookingValid()
                     ? agreedToTerms
                       ? 'bg-studio-green hover:bg-studio-green-darker text-white cursor-pointer shadow-lg hover:shadow-xl'
@@ -975,10 +1045,10 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                 }`}
               >
                 {!isBookingValid()
-                  ? 'SELECT TIME TO CONTINUE'
+                  ? 'Select a time to continue'
                   : !agreedToTerms
-                  ? 'AGREE TO TERMS TO CONTINUE'
-                  : 'PROCEED TO BOOKING DETAILS'
+                  ? 'Agree to terms to continue'
+                  : `Continue · $${price.total}`
                 }
               </button>
             </div>
@@ -986,39 +1056,63 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
 
           {/* Booking Form */}
           {showBookingForm && (
-            <div className="bg-white shadow-xl p-8 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-heading font-black text-gray-900">Complete Your Booking</h3>
+            <div className="bg-white shadow-xl p-6 sm:p-8 max-w-4xl mx-auto mt-6">
+              <div className="flex items-center justify-between mb-6 sm:mb-8">
+                <div>
+                  <div className="text-xs font-heading font-black uppercase tracking-wider text-studio-green mb-1">Step 2</div>
+                  <h3 className="text-2xl font-heading font-black text-gray-900 uppercase">Your details</h3>
+                </div>
                 <button
                   onClick={() => setShowBookingForm(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 p-2 -m-2"
+                  aria-label="Back to time selection"
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
               {/* Booking Summary */}
-              <div className="bg-gray-50 p-6 mb-8">
+              <div className="bg-gray-50 p-5 sm:p-6 mb-6 sm:mb-8">
                 <h4 className="text-lg font-heading font-black text-gray-900 mb-4">Booking Summary</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Date:</span>
-                    <div className="font-heading font-black">
-                      {new Date(selectedDate! + 'T00:00:00').toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Date:</span>
+                      <button
+                        type="button"
+                        onClick={handleEditDate}
+                        className="inline-flex items-center gap-1 text-xs text-studio-green hover:text-studio-green-darker font-heading font-black uppercase tracking-wide"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Change
+                      </button>
+                    </div>
+                    <div className="font-heading font-black mt-1">
+                      {new Date(selectedDate! + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                       })}
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Time:</span>
-                    <div className="font-heading font-black">{selectedStartTime} - {selectedEndTime}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Time:</span>
+                      <button
+                        type="button"
+                        onClick={handleEditTime}
+                        className="inline-flex items-center gap-1 text-xs text-studio-green hover:text-studio-green-darker font-heading font-black uppercase tracking-wide"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Change
+                      </button>
+                    </div>
+                    <div className="font-heading font-black mt-1">{selectedStartTime} - {selectedEndTime}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Total:</span>
-                    <div className="font-heading font-black text-studio-green">${price.total}</div>
+                    <div className="font-heading font-black text-studio-green text-lg mt-1">${price.total}</div>
                   </div>
                 </div>
               </div>
@@ -1179,18 +1273,18 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                   </div>
                 )}
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => setShowBookingForm(false)}
-                    className="flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors duration-200"
+                    className="sm:flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors duration-200"
                   >
-                    Back to Time Selection
+                    Back to time
                   </button>
                   <button
                     type="submit"
                     disabled={!agreedToTerms || isSubmitting}
-                    className={`flex-1 py-3 px-6 font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${
+                    className={`sm:flex-1 py-3 px-6 font-heading font-black uppercase transition-colors duration-200 flex items-center justify-center gap-2 ${
                       !agreedToTerms || isSubmitting
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         : 'bg-studio-green text-white hover:bg-studio-green-darker cursor-pointer'
@@ -1202,9 +1296,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                         <span>Submitting...</span>
                       </>
                     ) : agreedToTerms ? (
-                      'Submit Booking Request'
+                      `Continue to payment · $${price.total}`
                     ) : (
-                      'Please Agree to Terms to Submit'
+                      'Agree to terms to continue'
                     )}
                   </button>
                 </div>
@@ -1250,6 +1344,19 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         bookingDetails={confirmedBookingDetails}
         paid={paymentCompleted}
       />
+
+      {/* Mobile sticky CTA — shows when a date is picked and we're not in the form/payment step */}
+      {selectedDate && !showBookingForm && !showPaymentModal && !showConfirmationModal && (
+        <MobileBookingBar
+          dateLabel={selectedDateLabel}
+          timeLabel={selectedTimeLabel}
+          priceTotal={price.total}
+          disabled={!isBookingValid()}
+          disabledReason={mobileBarDisabledReason}
+          agreedToTerms={agreedToTerms}
+          onContinue={handleProceedToBooking}
+        />
+      )}
     </section>
   );
 };
