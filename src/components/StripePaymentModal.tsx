@@ -30,10 +30,8 @@ interface StripePaymentModalProps {
     projectType: string;
     totalPrice: number;
     notes: string;
-    receivePromotionalComms: boolean;
     agreedToTerms: boolean;
     termsAgreedAt: string | null;
-    receivePromotionalCommsAt: string | null;
   };
 }
 
@@ -260,10 +258,8 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
     bookingData.projectType,
     bookingData.totalPrice,
     bookingData.notes,
-    bookingData.receivePromotionalComms,
     bookingData.agreedToTerms,
     bookingData.termsAgreedAt,
-    bookingData.receivePromotionalCommsAt,
   ]);
 
   if (!isOpen) return null;

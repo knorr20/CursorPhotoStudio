@@ -19,10 +19,8 @@ type BookingPayload = {
   projectType: string;
   totalPrice: number;
   notes: string;
-  receivePromotionalComms: boolean;
   agreedToTerms: boolean;
   termsAgreedAt: string | null;
-  receivePromotionalCommsAt: string | null;
 };
 
 const getTimeValue = (timeString: string): number => {
@@ -114,10 +112,8 @@ const parseBookingDataFromMetadata = (metadata: Record<string, string>): Booking
     projectType: metadata.projectType,
     totalPrice: Number(metadata.totalPrice),
     notes: metadata.notes ?? "",
-    receivePromotionalComms: metadata.receivePromotionalComms === "true",
     agreedToTerms: metadata.agreedToTerms === "true",
     termsAgreedAt: metadata.termsAgreedAt || null,
-    receivePromotionalCommsAt: metadata.receivePromotionalCommsAt || null,
   };
 };
 
@@ -268,10 +264,8 @@ const finalizeBookingFromPaymentIntent = async (
       total_price: bookingData.totalPrice,
       status: "confirmed",
       notes: bookingData.notes || "",
-      receive_promotional_comms: bookingData.receivePromotionalComms,
       agreed_to_terms: bookingData.agreedToTerms,
       terms_agreed_at: bookingData.termsAgreedAt,
-      receive_promotional_comms_at: bookingData.receivePromotionalCommsAt,
       stripe_payment_intent_id: paymentIntentId,
       payment_status: "paid",
       receipt_url: receiptUrl,
@@ -412,10 +406,8 @@ Deno.serve(async (req: Request) => {
           projectType: payload.projectType,
           totalPrice: String(payload.totalPrice),
           notes: payload.notes ?? "",
-          receivePromotionalComms: String(payload.receivePromotionalComms),
           agreedToTerms: String(payload.agreedToTerms),
           termsAgreedAt: payload.termsAgreedAt ?? "",
-          receivePromotionalCommsAt: payload.receivePromotionalCommsAt ?? "",
         },
         automatic_payment_methods: { enabled: true },
       });

@@ -11,10 +11,8 @@ export interface Booking {
   totalPrice: number;
   status: 'confirmed' | 'cancelled';
   notes: string;
-  receivePromotionalComms: boolean;
   agreedToTerms: boolean;
   termsAgreedAt: string | null;
-  receivePromotionalCommsAt: string | null;
   createdAt: string;
   stripePaymentIntentId?: string | null;
   paymentStatus?: 'paid' | 'refunded';
@@ -27,6 +25,5 @@ export interface BookingFormData {
   clientPhone: string;
   projectType: string;
   notes: string;
-  receivePromotionalComms: boolean;
   agreedToTerms: boolean;
 }

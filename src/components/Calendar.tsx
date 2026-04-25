@@ -33,7 +33,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     clientPhone: '',
     projectType: '',
     notes: '',
-    receivePromotionalComms: false,
     agreedToTerms: false
   });
   const [honeypotValue, setHoneypotValue] = useState('');
@@ -594,12 +593,10 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         clientPhone: bookingFormData.clientPhone,
         projectType: bookingFormData.projectType,
         totalPrice: price.total,
-        receivePromotionalComms: bookingFormData.receivePromotionalComms,
         agreedToTerms: agreedToTerms,
         status: 'confirmed',
         notes: bookingFormData.notes,
         termsAgreedAt: agreedToTerms ? now : null,
-        receivePromotionalCommsAt: bookingFormData.receivePromotionalComms ? now : null,
       };
 
       setConfirmedBookingDetails(newBooking);
@@ -617,7 +614,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         clientPhone: '',
         projectType: '',
         notes: '',
-        receivePromotionalComms: false,
         agreedToTerms: false
       });
       setAgreedToTerms(false);
@@ -984,18 +980,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                 <div className={`mt-8 space-y-3 text-sm border-t pt-6 transition-colors duration-300 ${
                   showConsentWarning ? 'border-red-300 bg-red-50/50 -mx-4 px-4 py-4' : 'border-gray-200'
                 }`}>
-                  <div>
-                    <label className="inline-flex items-start cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="receivePromotionalComms"
-                        checked={bookingFormData.receivePromotionalComms}
-                        onChange={(e) => setBookingFormData({ ...bookingFormData, receivePromotionalComms: e.target.checked })}
-                        className="form-checkbox h-5 w-5 mt-0.5 text-studio-green transition duration-150 ease-in-out rounded border-gray-300 focus:ring-studio-green focus:ring-2 flex-shrink-0"
-                      />
-                      <span className="ml-2 text-gray-700">I would like to receive promotional email updates (discounts, offers, news). You can unsubscribe at any time.</span>
-                    </label>
-                  </div>
                   <div className={`transition-all duration-300 ${
                     showConsentWarning && !agreedToTerms ? 'motion-safe:animate-pulse' : ''
                   }`}>
@@ -1328,10 +1312,8 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
             projectType: confirmedBookingDetails.projectType,
             totalPrice: confirmedBookingDetails.totalPrice,
             notes: confirmedBookingDetails.notes,
-            receivePromotionalComms: confirmedBookingDetails.receivePromotionalComms,
             agreedToTerms: confirmedBookingDetails.agreedToTerms,
             termsAgreedAt: confirmedBookingDetails.termsAgreedAt,
-            receivePromotionalCommsAt: confirmedBookingDetails.receivePromotionalCommsAt,
           }}
           stripePublishableKey={stripePublishableKey}
         />
