@@ -121,6 +121,28 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
+
+            <div className="mt-6 border border-white/15 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-wider text-gray-300 mb-3">Verified Business Profiles</p>
+              <div className="space-y-2">
+                <a
+                  href="https://www.google.com/maps?cid=2516701744026527069"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-white hover:text-rich-yellow transition-colors duration-200"
+                >
+                  Google Business Profile
+                </a>
+                <a
+                  href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-white hover:text-rich-yellow transition-colors duration-200"
+                >
+                  Yelp Reviews
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
