@@ -147,13 +147,8 @@ const CheckoutForm: React.FC<{
             Preparing payment form...
           </div>
         )}
-        <PaymentElement
-          onReady={handlePaymentElementReady}
-          options={{
-            layout: { type: 'tabs', defaultCollapsed: false },
-            wallets: { applePay: 'auto', googlePay: 'auto' },
-          }}
-        />
+        {/* No layout/wallets overrides — Stripe picks order & wallets (e.g. Apple Pay in Safari) from PI + Dashboard */}
+        <PaymentElement onReady={handlePaymentElementReady} />
       </div>
 
       {paymentError && (
