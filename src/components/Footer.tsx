@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Instagram, ArrowRight, ExternalLink, Star } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface FooterProps {
   onNavigateAndScroll: (sectionId: string) => void;
@@ -122,61 +122,50 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
               </a>
             </div>
 
-            <div className="mt-6">
-              <p className="text-xs uppercase tracking-wider text-gray-300 mb-3">Trusted Reviews</p>
-              <div className="space-y-3">
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 mt-12 pt-8">
+          <h3 className="text-center text-xl font-heading font-black uppercase mb-5">Client Reviews</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="border border-white/20 bg-white/5 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-heading font-black uppercase text-white">Google Reviews</p>
                 <a
                   href="https://www.google.com/maps?cid=2516701744026527069"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group block border border-white/20 bg-white/5 hover:bg-white/10 transition-all duration-200 p-3"
-                  aria-label="Open Google Business Profile reviews"
+                  className="text-xs text-gray-300 hover:text-rich-yellow transition-colors duration-200 inline-flex items-center gap-1"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-heading font-black text-white uppercase">Google Business Profile</div>
-                      <div className="flex items-center gap-1 mt-1 text-rich-yellow">
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                      </div>
-                      <p className="text-xs text-gray-300 mt-1">See our verified location, reviews, and latest updates.</p>
-                    </div>
-                    <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-rich-yellow transition-colors duration-200 flex-shrink-0 mt-0.5" />
-                  </div>
-                </a>
-
-                <a
-                  href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block border border-white/20 bg-white/5 hover:bg-white/10 transition-all duration-200 p-3"
-                  aria-label="Open Yelp reviews"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-heading font-black text-white uppercase">Yelp Reviews</div>
-                      <div className="flex items-center gap-1 mt-1 text-rich-yellow">
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                      </div>
-                      <p className="text-xs text-gray-300 mt-1">Read client experiences and recent studio feedback on Yelp.</p>
-                    </div>
-                    <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-rich-yellow transition-colors duration-200 flex-shrink-0 mt-0.5" />
-                  </div>
+                  Open profile
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
+              <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
+            </div>
+
+            <div className="border border-white/20 bg-white/5 p-4 flex flex-col justify-between">
+              <div>
+                <p className="text-sm font-heading font-black uppercase text-white mb-2">Yelp Reviews (Coming Next)</p>
+                <p className="text-sm text-gray-300">
+                  We are preparing a live Yelp feed in this spot. In the meantime, you can view all reviews directly on Yelp.
+                </p>
+              </div>
+              <a
+                href="https://www.yelp.com/biz/23-films-studio-north-hollywood"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:text-rich-yellow hover:border-rich-yellow/60 transition-colors duration-200 py-2.5 px-4 text-sm font-heading font-black uppercase"
+              >
+                View Yelp Page
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </div>
           </div>
         </div>
 
         {/* Book CTA */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col items-center gap-6">
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col items-center gap-6">
           <button
             onClick={() => onNavigateAndScroll('booking')}
             className="group bg-rich-yellow text-gray-900 px-8 py-3 font-heading font-black text-lg hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 uppercase"
