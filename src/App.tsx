@@ -166,8 +166,8 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* Loading Overlay */}
-      {(loading || (messagesLoading && location.pathname !== '/admin')) && (
+      {/* Admin-only loading overlay (kept for /admin where data IS the page) */}
+      {(loading || messagesLoading) && location.pathname === '/admin' && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 shadow-2xl text-center max-w-sm mx-4">
             <div className="w-16 h-16 border-4 border-gray-300 border-t-studio-green rounded-full animate-spin mx-auto mb-4"></div>
@@ -177,8 +177,9 @@ function App() {
         </div>
       )}
 
-      {/* Error Overlay */}
-      {(error || (messagesError && location.pathname !== '/admin')) && (
+      {/* Error Overlay — only for booking conflicts (real user-blocking issues). */}
+      {/* Other read errors are logged in hooks; the homepage stays usable. */}
+      {(error || messagesError) && (error || messagesError)?.includes('time slot') && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 shadow-2xl text-center max-w-md mx-4">
             <div className="text-red-600 mb-4">
@@ -186,32 +187,23 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {(error || messagesError)?.includes('time slot') ? 'Booking Conflict' : 'Error'}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Booking Conflict</h3>
             <p className="text-gray-600 mb-4">{error || messagesError}</p>
-            {!(error || messagesError)?.includes('time slot') && (
-              <p className="text-sm text-gray-500 mb-6">
-                Please make sure Supabase is properly configured. Check the console for more details.
-              </p>
-            )}
             <button
               onClick={() => window.location.reload()}
               className="bg-studio-green text-white px-6 py-2 rounded hover:bg-studio-green-darker transition-colors duration-200 mr-2"
             >
-              {(error || messagesError)?.includes('time slot') ? 'Refresh Calendar' : 'Retry'}
+              Refresh Calendar
             </button>
-            {(error || messagesError)?.includes('time slot') && (
-              <button
-                onClick={() => {
-                  clearError();
-                  clearMessagesError();
-                }}
-                className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition-colors duration-200"
-              >
-                Close
-              </button>
-            )}
+            <button
+              onClick={() => {
+                clearError();
+                clearMessagesError();
+              }}
+              className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition-colors duration-200"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

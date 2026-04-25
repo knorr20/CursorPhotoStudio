@@ -2,6 +2,39 @@ import React from 'react';
 import { Camera, Lightbulb, Wind, Volume2, Monitor, Palette } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
+const ADDITIONAL_BACKDROP_COLORS: { hex: string; name: string }[] = [
+  { hex: '#FF0000', name: 'Red' },
+  { hex: '#DC143C', name: 'Crimson' },
+  { hex: '#8B0000', name: 'Dark Red' },
+  { hex: '#FF6347', name: 'Tomato' },
+  { hex: '#FF4500', name: 'Orange Red' },
+  { hex: '#FFA500', name: 'Orange' },
+  { hex: '#FFD700', name: 'Gold' },
+  { hex: '#FFFF00', name: 'Yellow' },
+  { hex: '#9ACD32', name: 'Yellow Green' },
+  { hex: '#32CD32', name: 'Lime Green' },
+  { hex: '#228B22', name: 'Forest Green' },
+  { hex: '#006400', name: 'Dark Green' },
+  { hex: '#008B8B', name: 'Dark Cyan' },
+  { hex: '#00CED1', name: 'Dark Turquoise' },
+  { hex: '#00BFFF', name: 'Deep Sky Blue' },
+  { hex: '#0000FF', name: 'Blue' },
+  { hex: '#000080', name: 'Navy' },
+  { hex: '#4B0082', name: 'Indigo' },
+  { hex: '#8A2BE2', name: 'Blue Violet' },
+  { hex: '#9932CC', name: 'Dark Orchid' },
+  { hex: '#FF00FF', name: 'Magenta' },
+  { hex: '#FF1493', name: 'Deep Pink' },
+  { hex: '#FFB6C1', name: 'Light Pink' },
+  { hex: '#F5DEB3', name: 'Wheat' },
+  { hex: '#DEB887', name: 'Burlywood' },
+  { hex: '#D2691E', name: 'Chocolate' },
+  { hex: '#8B4513', name: 'Saddle Brown' },
+  { hex: '#A0522D', name: 'Sienna' },
+  { hex: '#696969', name: 'Dim Gray' },
+  { hex: '#2F4F4F', name: 'Dark Slate Gray' },
+];
+
 const Equipment = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollReveal({ threshold: 0.2 });
   const { ref: gridRef, isVisible: gridVisible } = useScrollReveal({ threshold: 0.05 });
@@ -107,9 +140,9 @@ const Equipment = () => {
     <section id="equipment" className="pt-20 pb-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={headerRef} className={`text-center mb-16 ${headerVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
-          <h2 className="text-4xl font-heading font-black text-gray-900 mb-4">INCLUDED IN BASE RENTAL</h2>
+          <h2 className="text-4xl font-heading font-black text-gray-900 mb-4 uppercase">What's Included</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Professional-grade equipment included in your base rental
+            Everything in this list is part of every booking — no extras to rent.
           </p>
         </div>
 
@@ -191,44 +224,31 @@ const Equipment = () => {
               For any other color, please check availability before your visit
             </p>
             
-            {/* Additional Color Options */}
-            <div className="mt-4">
-              <div className="flex flex-wrap justify-center gap-2 mb-2">
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FF0000' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#DC143C' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#8B0000' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FF6347' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FF4500' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FFA500' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FFD700' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FFFF00' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#9ACD32' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#32CD32' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#228B22' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#006400' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#008B8B' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#00CED1' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#00BFFF' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#0000FF' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#000080' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#4B0082' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#8A2BE2' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#9932CC' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FF00FF' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FF1493' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#FFB6C1' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#F5DEB3' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#DEB887' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#D2691E' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#8B4513' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#A0522D' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#696969' }}></div>
-                <div className="w-6 h-6 border border-gray-300" style={{ backgroundColor: '#2F4F4F' }}></div>
+            {/* Additional Color Options — collapsed by default to reduce visual noise */}
+            <details className="mt-4 group">
+              <summary className="cursor-pointer list-none inline-flex items-center gap-2 text-sm font-heading font-black uppercase tracking-wide text-studio-green hover:text-studio-green-darker">
+                <span className="group-open:hidden">Show all 30+ available colors</span>
+                <span className="hidden group-open:inline">Hide colors</span>
+                <span className="text-xs">▾</span>
+              </summary>
+              <div className="mt-4">
+                <div className="flex flex-wrap justify-center gap-2 mb-2">
+                  {ADDITIONAL_BACKDROP_COLORS.map(({ hex, name }) => (
+                    <div
+                      key={hex}
+                      title={name}
+                      aria-label={name}
+                      role="img"
+                      className="w-6 h-6 border border-gray-300"
+                      style={{ backgroundColor: hex }}
+                    />
+                  ))}
+                </div>
+                <p className="text-gray-500 text-xs text-center">
+                  Hover over any color for its name. Additional colors available upon request.
+                </p>
               </div>
-              <p className="text-gray-500 text-xs text-center">
-                Additional colors available upon request
-              </p>
-            </div>
+            </details>
           </div>
         </div>
       </div>

@@ -70,8 +70,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
                   Contact
                 </button>
               </li>
-              <li><Link to="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-white transition-colors duration-200">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="hover:text-rich-yellow transition-colors duration-200">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-rich-yellow transition-colors duration-200">Terms of Service</Link></li>
             </ul>
           </div>
 
@@ -101,7 +101,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4" />
-                <span>LA23PRODUCTION@GMAIL.COM</span>
+                <a
+                  href="mailto:la23production@gmail.com"
+                  className="hover:text-white transition-colors duration-200 break-all"
+                >
+                  la23production@gmail.com
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4" />

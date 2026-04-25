@@ -152,6 +152,37 @@
   animation: pulseBadge 2.5s ease-in-out infinite;
 }
 
+/* Lift Elfsight floating WhatsApp chat above the mobile sticky booking bar
+   so the Continue button remains tappable on phones. */
+@media (max-width: 767px) {
+  #whatsapp-chat-widget,
+  iframe[src*="elfsight"][src*="whatsapp"],
+  div[class*="eapps-whatsapp"][class*="positioner"] {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+  }
+}
+
+/* Respect users' OS-level reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-fade-in-scale,
+  .animate-pulse-badge,
+  .animate-bounce,
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
+  }
+  .scroll-hidden {
+    opacity: 1 !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Custom bullet styling for Privacy Policy */
 #privacy-policy-content ul li {
   position: relative;

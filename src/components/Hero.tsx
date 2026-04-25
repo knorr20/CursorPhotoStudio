@@ -27,11 +27,15 @@ const Hero = () => {
 
       {/* Hero Content */}
       <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl lg:text-8xl font-heading font-black text-white mb-12 leading-tight uppercase text-balance">
+        <h1 className="text-4xl sm:text-5xl lg:text-8xl font-heading font-black text-white mb-6 leading-tight uppercase text-balance">
           RENT A FULLY EQUIPPED
           <span className="block text-gray-300 font-heading">PHOTO STUDIO</span>
         </h1>
-        
+
+        <p className="text-base sm:text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+          Profoto lighting kit · North Hollywood · from $40/hr
+        </p>
+
         <button
           onClick={() => setShowDirectionsModal(true)}
           className="flex items-center justify-center gap-2 text-sm text-white mb-8 hover:text-rich-yellow transition-colors duration-200 cursor-pointer underline decoration-1 underline-offset-2 hover:decoration-rich-yellow mx-auto"
@@ -41,16 +45,16 @@ const Hero = () => {
         </button>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button 
+          <button
             onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
             className="group bg-studio-green text-white px-8 py-3 font-heading font-black text-lg hover:bg-studio-green-darker transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 uppercase w-full sm:w-auto min-w-[200px]"
           >
             BOOK STUDIO TIME
           </button>
-          
-          <button 
+
+          <button
             onClick={() => document.getElementById('equipment')?.scrollIntoView({ behavior: 'smooth' })}
-            className="group bg-studio-green text-white px-8 py-3 font-heading font-black text-lg hover:bg-studio-green-darker transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 uppercase w-full sm:w-auto min-w-[200px]"
+            className="group bg-white/10 backdrop-blur-sm border border-white/40 text-white px-8 py-3 font-heading font-black text-lg hover:bg-white/20 hover:border-white/60 transition-all duration-300 flex items-center justify-center gap-2 uppercase w-full sm:w-auto min-w-[200px]"
           >
             VIEW EQUIPMENT
           </button>

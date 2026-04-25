@@ -112,7 +112,12 @@ const Contact = () => {
                 </div>
                 <div>
                   <div className="font-heading font-black text-gray-900">Email</div>
-                  <div className="text-gray-600">LA23PRODUCTION@GMAIL.COM</div>
+                  <a
+                    href="mailto:la23production@gmail.com"
+                    className="text-gray-600 hover:text-gray-900 transition-colors break-all"
+                  >
+                    la23production@gmail.com
+                  </a>
                 </div>
               </div>
               
@@ -199,7 +204,7 @@ const Contact = () => {
               
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
+                  Phone Number <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="tel"
@@ -281,14 +286,13 @@ const Contact = () => {
           <div className="bg-gray-50 p-6 border border-gray-200">
             <div className="relative w-full h-64 overflow-hidden mb-4">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3302.8!2d-118.374!3d34.1692!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2951f0a0a0a01%3A0x0!2s10710%20Burbank%20Blvd%2C%20North%20Hollywood%2C%20CA%2091601!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
+                src="https://maps.google.com/maps?q=10710%20Burbank%20Blvd%2C%20North%20Hollywood%2C%20CA%2091601&t=&z=15&ie=UTF8&iwloc=B&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                className=""
                 title="23 Photo Studio Location"
               />
             </div>

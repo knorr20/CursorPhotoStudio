@@ -25,7 +25,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [confirmedBookingDetails, setConfirmedBookingDetails] = useState<Omit<Booking, 'id' | 'createdAt'> | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [showConsentWarning, setShowConsentWarning] = useState(false);
   const [bookingFormData, setBookingFormData] = useState<BookingFormData>({
     clientName: '',
@@ -600,7 +599,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
       };
 
       setConfirmedBookingDetails(newBooking);
-      setPaymentCompleted(false);
       setShowPaymentModal(true);
 
       setSelectedDate(null);
@@ -630,20 +628,17 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   const handlePaymentSuccess = async () => {
     await onBookingFinalized();
     setShowPaymentModal(false);
-    setPaymentCompleted(true);
     setShowConfirmationModal(true);
   };
 
   const handlePaymentClose = () => {
     setShowPaymentModal(false);
     setConfirmedBookingDetails(null);
-    setPaymentCompleted(false);
   };
 
   const handleCloseConfirmationModal = () => {
     setShowConfirmationModal(false);
     setConfirmedBookingDetails(null);
-    setPaymentCompleted(false);
   };
 
   const monthNames = [
@@ -696,7 +691,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   };
 
   return (
-    <section id="booking" className="pt-10 pb-28 md:pb-20 bg-gray-50 scroll-mt-16">
+    <section id="booking" className="pt-10 pb-28 md:pb-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-heading font-black text-gray-900 mb-3 uppercase">Book Your Studio Time</h2>
@@ -1324,7 +1319,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         isOpen={showConfirmationModal}
         onClose={handleCloseConfirmationModal}
         bookingDetails={confirmedBookingDetails}
-        paid={paymentCompleted}
       />
 
       {/* Mobile sticky CTA — shows when a date is picked and we're not in the form/payment step */}
