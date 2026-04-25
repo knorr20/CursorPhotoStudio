@@ -92,7 +92,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
             <div className="space-y-3 text-gray-400">
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4" />
-                <span>(818) 974-45-76</span>
+                <a
+                  href="tel:+12133359103"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  +1 (213) 335-9103
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4" />

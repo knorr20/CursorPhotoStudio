@@ -18,7 +18,7 @@ function getOutboundMailConfig(): { from: string; replyTo: string } {
   return { from, replyTo };
 }
 const STUDIO_ADDRESS = "10710 Burbank Blvd, North Hollywood, CA 91601";
-const STUDIO_PHONE = "(818) 974-45-76";
+const STUDIO_PHONE = "+1 (213) 335-9103";
 /** Client-facing booking questions (mailto / tel in client confirmation email) */
 const CLIENT_INQUIRY_EMAIL = "la23production@gmail.com";
 const CLIENT_INQUIRY_PHONE_DISPLAY = "+1 (213) 335-9103";

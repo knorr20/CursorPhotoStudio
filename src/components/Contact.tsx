@@ -100,7 +100,9 @@ const Contact = () => {
                 </div>
                 <div>
                   <div className="font-heading font-black text-gray-900">Phone</div>
-                  <div className="text-gray-600">(818) 974-45-76</div>
+                  <a href="tel:+12133359103" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    +1 (213) 335-9103
+                  </a>
                 </div>
               </div>
               
@@ -262,7 +264,12 @@ const Contact = () => {
                   <Mail className="h-5 w-5" />
                   <span className="font-semibold">Failed to send message</span>
                 </div>
-                <p className="text-sm mt-1">Please try again or contact us directly at (818) 974-45-76</p>
+                <p className="text-sm mt-1">
+                  Please try again or contact us directly at{' '}
+                  <a href="tel:+12133359103" className="underline font-medium">
+                    +1 (213) 335-9103
+                  </a>
+                </p>
               </div>
             )}
           </div>

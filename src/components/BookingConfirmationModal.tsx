@@ -229,7 +229,9 @@ const BookingConfirmationModal: React.FC<BookingConfirmationModalProps> = ({
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4" />
-                <span>(818) 974-45-76</span>
+                <a href="tel:+12133359103" className="text-white/95 hover:text-white underline-offset-2 hover:underline">
+                  +1 (213) 335-9103
+                </a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4" />
