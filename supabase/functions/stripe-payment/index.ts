@@ -49,6 +49,8 @@ const isWeekend = (dateString: string): boolean => {
 async function invokeSendEmail(payload: {
   type: "booking" | "contact";
   data: Record<string, unknown>;
+  /** Dedupes Resend sends when webhook + client both finalize the same PI */
+  booking_idempotency_key?: string;
 }): Promise<void> {
   const baseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -62,6 +64,7 @@ async function invokeSendEmail(payload: {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${serviceKey}`,
+        apikey: serviceKey,
       },
       body: JSON.stringify(payload),
     });
@@ -167,6 +170,38 @@ const finalizeBookingFromPaymentIntent = async (
 
   const existingBooking = existingRows?.[0];
   if (existingBooking) {
+    // Webhook often inserts before the browser calls finalize_booking — still send emails once.
+    const { data: fullRow, error: fullErr } = await supabase
+      .from("bookings")
+      .select(
+        "id, date, start_time, end_time, duration, client_name, client_email, client_phone, project_type, total_price, status, notes"
+      )
+      .eq("id", existingBooking.id)
+      .single();
+
+    if (!fullErr && fullRow) {
+      await invokeSendEmail({
+        type: "booking",
+        booking_idempotency_key: paymentIntentId,
+        data: {
+          id: fullRow.id,
+          date: fullRow.date,
+          start_time: fullRow.start_time,
+          end_time: fullRow.end_time,
+          duration: fullRow.duration,
+          client_name: fullRow.client_name,
+          client_email: fullRow.client_email,
+          client_phone: fullRow.client_phone,
+          project_type: fullRow.project_type,
+          total_price: fullRow.total_price,
+          status: fullRow.status,
+          notes: fullRow.notes ?? "",
+        },
+      });
+    } else {
+      console.error("already_finalized: could not load booking row for email", fullErr);
+    }
+
     return { status: "already_finalized" as const, bookingId: existingBooking.id };
   }
 
@@ -253,6 +288,7 @@ const finalizeBookingFromPaymentIntent = async (
 
   await invokeSendEmail({
     type: "booking",
+    booking_idempotency_key: paymentIntentId,
     data: {
       id: insertedBooking.id,
       date: bookingData.date,

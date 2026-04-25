@@ -230,15 +230,20 @@ async function sendEmail(
   replyTo: string,
   to: string,
   subject: string,
-  html: string
+  html: string,
+  idempotencyKey?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    };
+    if (idempotencyKey) {
+      headers["Idempotency-Key"] = idempotencyKey;
+    }
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         from,
         reply_to: replyTo,
@@ -291,7 +296,11 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { type, data } = body;
+    const { type, data, booking_idempotency_key } = body as {
+      type?: string;
+      data?: unknown;
+      booking_idempotency_key?: string;
+    };
 
     if (!type || !data) {
       return new Response(
@@ -308,6 +317,10 @@ Deno.serve(async (req: Request) => {
 
     if (type === "booking") {
       const booking = data as BookingData;
+      const idemBase =
+        typeof booking_idempotency_key === "string" && booking_idempotency_key.trim().length > 0
+          ? booking_idempotency_key.trim()
+          : undefined;
 
       const clientResult = await sendEmail(
         resendApiKey,
@@ -315,7 +328,8 @@ Deno.serve(async (req: Request) => {
         replyTo,
         booking.client_email,
         `Booking Confirmation - ${formatDate(booking.date)}`,
-        buildBookingClientEmail(booking)
+        buildBookingClientEmail(booking),
+        idemBase ? `booking-email-${idemBase}-client` : undefined
       );
       results.push({ recipient: "client", ...clientResult });
 
@@ -325,7 +339,8 @@ Deno.serve(async (req: Request) => {
         replyTo,
         ADMIN_EMAIL,
         `New Booking: ${booking.client_name} - ${formatDate(booking.date)}`,
-        buildBookingAdminEmail(booking)
+        buildBookingAdminEmail(booking),
+        idemBase ? `booking-email-${idemBase}-admin` : undefined
       );
       results.push({ recipient: "admin", ...adminResult });
     } else if (type === "contact") {
