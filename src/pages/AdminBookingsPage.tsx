@@ -19,6 +19,7 @@ import { Booking } from '../types/booking';
 import { ContactMessage } from '../types/contactMessage';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { calculateDuration } from '../utils/bookingCalculations';
+import { TIME_SLOTS } from '../utils/studioHours';
 
 interface AdminBookingsPageProps {
   bookings: Booking[];
@@ -62,10 +63,7 @@ type EditFormState = {
   notes: string;
 };
 
-const timeSlots = [
-  '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM',
-];
+const timeSlots = TIME_SLOTS;
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 

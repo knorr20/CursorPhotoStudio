@@ -8,6 +8,7 @@ interface MobileBookingBarProps {
   disabled: boolean;
   disabledReason: string;
   agreedToTerms: boolean;
+  termsMissing: boolean;
   onContinue: () => void;
 }
 
@@ -18,6 +19,7 @@ const MobileBookingBar: React.FC<MobileBookingBarProps> = ({
   disabled,
   disabledReason,
   agreedToTerms,
+  termsMissing,
   onContinue,
 }) => {
   const buttonClasses = disabled
@@ -53,10 +55,15 @@ const MobileBookingBar: React.FC<MobileBookingBarProps> = ({
           aria-label={disabled ? disabledReason : 'Continue to booking details'}
           className={`flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] font-heading font-black uppercase text-sm transition-colors duration-200 flex-shrink-0 ${buttonClasses}`}
         >
-          <span>Continue</span>
+          <span>{termsMissing ? 'Agree & continue' : 'Continue'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
+      {!disabled && termsMissing && (
+        <div className="mt-1 text-[11px] text-amber-700 text-center truncate">
+          Accept terms to continue
+        </div>
+      )}
       {disabled && disabledReason && (
         <div className="mt-1 text-[11px] text-gray-500 text-center truncate">
           {disabledReason}

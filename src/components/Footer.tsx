@@ -39,12 +39,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => onNavigateAndScroll('studio')}
+                <Link
+                  to="/studio"
                   className="hover:text-rich-yellow transition-colors duration-200 text-left"
                 >
-                  Studio Features
-                </button>
+                  Studio Photos & Tour
+                </Link>
               </li>
               <li>
                 <button 

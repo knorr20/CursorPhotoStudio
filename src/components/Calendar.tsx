@@ -8,6 +8,7 @@ import BookingStepsIndicator from './BookingStepsIndicator';
 import MobileBookingBar from './MobileBookingBar';
 import { getTimeValue, isWeekend, calculateDuration, calculatePrice } from '../utils/bookingCalculations';
 import { formatPhoneNumber, isValidPhone } from '../utils/phoneFormat';
+import { TIME_SLOTS, CLOSING_LABEL, HOURS_RANGE_LABEL } from '../utils/studioHours';
 
 interface CalendarProps {
   bookings: Booking[];
@@ -80,11 +81,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   // Refs for scrolling between booking steps
   const timeSelectionRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const termsConsentRef = useRef<HTMLDivElement>(null);
 
-  const timeSlots = [
-    '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM'
-  ];
+  const timeSlots = TIME_SLOTS;
 
   const projectTypes = [
     'Portrait Photography',
@@ -157,17 +156,16 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     return hour24 * 60 + minutes;
   };
 
-  // Enhanced function to check if there are at least 2 consecutive hours available that end by 7 PM
+  // Enhanced function to check if there are at least 2 consecutive hours available that end by closing time
   const hasMinimumConsecutiveHours = (dateString: string, availableSlots: number[]) => {
     if (availableSlots.length < 2) return false;
     
     // Sort available slots
     const sortedSlots = [...availableSlots].sort((a, b) => a - b);
     
-    // 7 PM is 19:00 (1140 minutes from midnight)
-    const maxEndTime = getTimeValue('7:00 PM');
+    const maxEndTime = getTimeValue(CLOSING_LABEL);
     
-    // Check for at least 2 consecutive hours that end by 7 PM
+    // Check for at least 2 consecutive hours that end by closing time
     for (let i = 0; i < sortedSlots.length; i++) {
       const startTime = sortedSlots[i];
       
@@ -278,12 +276,12 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     );
     
     // Check if there are at least 2 consecutive hours available from this start time
-    // and that the booking would end by 7 PM
-    const maxEndTime = getTimeValue('7:00 PM'); // 7 PM is the latest end time
+    // and that the booking would end by closing time
+    const maxEndTime = getTimeValue(CLOSING_LABEL);
     
-    // Check if a 2-hour booking from this start time would end by 7 PM
+    // Check if a 2-hour booking from this start time would end by closing
     if (timeValue + 120 > maxEndTime) {
-      return false; // Would extend past 7 PM
+      return false; // Would extend past closing time
     }
     
     // Check if the next hour is also available
@@ -319,7 +317,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     if (!selectedDate) return;
     
     const timeValue = getTimeValue(timeSlot);
-    const maxEndTime = getTimeValue('7:00 PM');
+    const maxEndTime = getTimeValue(CLOSING_LABEL);
     
     // If no start time is selected, set this as start time
     if (!selectedStartTime) {
@@ -417,7 +415,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     if (isTimeSlotPast(timeSlot, selectedDate)) return 'booked';
 
     const timeValue = getTimeValue(timeSlot);
-    const maxEndTime = getTimeValue('7:00 PM');
+    const maxEndTime = getTimeValue(CLOSING_LABEL);
 
     const isOccupiedByExistingBooking = isTimeSlotUnavailable(timeSlot, selectedDate);
     const isStartOfExistingBooking = isTimeSlotStartOfExistingBooking(timeSlot, selectedDate);
@@ -524,9 +522,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     const duration = calculateDuration(selectedStartTime, selectedEndTime);
     const totalMinutes = duration.hours * 60 + duration.minutes;
     const endValue = getTimeValue(selectedEndTime);
-    const maxEndTime = getTimeValue('7:00 PM');
+    const maxEndTime = getTimeValue(CLOSING_LABEL);
     
-    return totalMinutes >= 120 && endValue <= maxEndTime; // Strictly require at least 120 minutes (2 hours) and end by 7 PM
+    return totalMinutes >= 120 && endValue <= maxEndTime; // Strictly require at least 120 minutes (2 hours) and end by closing
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -552,6 +550,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
 
     if (!agreedToTerms) {
       setShowConsentWarning(true);
+      setTimeout(() => {
+        termsConsentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
       return;
     }
 
@@ -710,7 +711,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
             <div className="max-w-4xl mx-auto mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600">
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-studio-green" />
-                <span>Open 8 AM – 7 PM</span>
+                <span>Open {HOURS_RANGE_LABEL}</span>
               </span>
               <span className="hidden sm:inline text-gray-300">|</span>
               <span className="inline-flex items-center gap-1.5">
@@ -881,7 +882,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
 
               {/* Info Text — shown BEFORE the grid so the rules are clear up front */}
               <div className="text-center text-xs text-gray-500 uppercase tracking-wide mb-4">
-                2-hour minimum • Studio closes at 7 PM • For best price rent 5+ hours
+                2-hour minimum • Studio closes at {CLOSING_LABEL} • For best price rent 5+ hours
               </div>
 
               {/* Time Slots Grid */}
@@ -962,7 +963,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                         Minimum 2 hours required
                       </div>
                       <div className="text-red-600 mt-2">
-                        Please select an end time that gives you at least 2 hours of studio time and ends by 7 PM.
+                        Please select an end time that gives you at least 2 hours of studio time and ends by {CLOSING_LABEL}.
                       </div>
                     </div>
                   )}
@@ -970,9 +971,12 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
               )}
 
               {isBookingValid() && (
-                <div className={`mt-8 space-y-3 text-sm border-t pt-6 transition-colors duration-300 ${
+                <div
+                  ref={termsConsentRef}
+                  className={`mt-8 space-y-3 text-sm border-t pt-6 transition-colors duration-300 ${
                   showConsentWarning ? 'border-red-300 bg-red-50/50 -mx-4 px-4 py-4' : 'border-gray-200'
-                }`}>
+                  }`}
+                >
                   <div className={`transition-all duration-300 ${
                     showConsentWarning && !agreedToTerms ? 'motion-safe:animate-pulse' : ''
                   }`}>
@@ -1328,6 +1332,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
           disabled={!isBookingValid()}
           disabledReason={mobileBarDisabledReason}
           agreedToTerms={agreedToTerms}
+          termsMissing={!agreedToTerms}
           onContinue={handleProceedToBooking}
         />
       )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 interface HeaderProps {
@@ -11,6 +11,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isStudioPage = location.pathname === '/studio';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,14 +58,16 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8" aria-label="Main navigation">
-            <button
-              onClick={() => scrollToSection('studio')}
+            <Link
+              to="/studio"
+              onClick={() => setIsMenuOpen(false)}
+              aria-current={isStudioPage ? 'page' : undefined}
               className={`transition-colors duration-300 font-heading font-black uppercase ${
                 showSolid ? 'text-gray-700 hover:text-gray-900' : 'text-white/90 hover:text-white'
-              }`}
+              } ${isStudioPage ? 'underline underline-offset-4 decoration-2' : ''}`}
             >
               Studio
-            </button>
+            </Link>
             <button
               onClick={() => scrollToSection('equipment')}
               className={`transition-colors duration-300 font-heading font-black uppercase ${
@@ -108,12 +111,16 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
         {isMenuOpen && (
           <nav className="md:hidden border-t border-gray-200 bg-white" aria-label="Mobile navigation">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <button
-                onClick={() => scrollToSection('studio')}
-                className="block w-full text-left px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200 font-heading font-black uppercase"
+              <Link
+                to="/studio"
+                onClick={() => setIsMenuOpen(false)}
+                aria-current={isStudioPage ? 'page' : undefined}
+                className={`block w-full text-left px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200 font-heading font-black uppercase ${
+                  isStudioPage ? 'text-studio-green' : ''
+                }`}
               >
                 Studio
-              </button>
+              </Link>
               <button
                 onClick={() => scrollToSection('equipment')}
                 className="block w-full text-left px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200 font-heading font-black uppercase"

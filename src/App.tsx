@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import WebsiteLayout from './pages/WebsiteLayout';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import StudioPage from './pages/StudioPage';
 import NotFoundPage from './pages/NotFoundPage';
 import AdminBookingsPage from './pages/AdminBookingsPage';
 import AdminLoginCard from './components/AdminLoginCard';
@@ -134,6 +135,14 @@ function App() {
               onNavigateAndScroll={handleNavigateAndScroll}
             />
           } 
+        />
+        <Route
+          path="/studio"
+          element={
+            <StudioPage
+              onNavigateAndScroll={handleNavigateAndScroll}
+            />
+          }
         />
         <Route
           path="/admin"
