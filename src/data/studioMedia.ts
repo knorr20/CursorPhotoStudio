@@ -28,10 +28,10 @@ export const interiorPhotos: StudioPhoto[] = [
     caption: 'Main shooting area',
   },
   {
-    src: '/studio/interior-2.jpg',
-    alt: 'Cyclorama wall at 23 Photo Studio',
-    available: false,
-    caption: 'Cyclorama wall',
+    src: '/studio/interior-2.png',
+    alt: 'Studio lighting setup with blue backdrop and modifiers at 23 Photo Studio',
+    available: true,
+    caption: 'Lighting setup with blue backdrop',
   },
   {
     src: '/studio/interior-3.jpg',
