@@ -53,7 +53,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         if (!isValidPhone(value)) return 'Enter a 10-digit phone number';
         return '';
       case 'projectType':
-        if (!value) return 'Select a project type';
         return '';
       default:
         return '';
@@ -70,8 +69,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     return (
       validateField('clientName', bookingFormData.clientName) === '' &&
       validateField('clientEmail', bookingFormData.clientEmail) === '' &&
-      validateField('clientPhone', bookingFormData.clientPhone) === '' &&
-      validateField('projectType', bookingFormData.projectType) === ''
+      validateField('clientPhone', bookingFormData.clientPhone) === ''
     );
   };
 
@@ -569,7 +567,6 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
       clientName: true,
       clientEmail: true,
       clientPhone: true,
-      projectType: true,
     });
 
     if (!isFormValid() || !selectedDate || !selectedStartTime || !selectedEndTime) return;
@@ -581,6 +578,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
       const duration = calculateDuration(selectedStartTime, selectedEndTime);
       const price = calculatePrice(selectedDate, selectedStartTime, selectedEndTime);
       const now = new Date().toISOString();
+      const normalizedProjectType = bookingFormData.projectType.trim() || 'Not specified';
 
       const newBooking: Omit<Booking, 'id' | 'createdAt'> = {
         date: selectedDate,
@@ -590,7 +588,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         clientName: bookingFormData.clientName,
         clientEmail: bookingFormData.clientEmail,
         clientPhone: bookingFormData.clientPhone,
-        projectType: bookingFormData.projectType,
+        projectType: normalizedProjectType,
         totalPrice: price.total,
         agreedToTerms: agreedToTerms,
         status: 'confirmed',
@@ -1191,7 +1189,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                   <div>
                     <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-2">
                       <Camera className="h-4 w-4 inline mr-2" />
-                      Project Type *
+                      Project Type <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     <select
                       id="projectType"
@@ -1207,7 +1205,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                           : 'border-gray-300 focus:ring-studio-green'
                       }`}
                     >
-                      <option value="">Select project type</option>
+                      <option value="">Select project type (optional)</option>
                       {projectTypes.map((type) => (
                         <option key={type} value={type}>{type}</option>
                       ))}
