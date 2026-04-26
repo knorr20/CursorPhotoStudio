@@ -28,8 +28,8 @@ interface StudioPageProps {
 }
 
 const QUICK_SPECS: { icon: React.ReactNode; label: string; value: string }[] = [
-  { icon: <Ruler className="h-6 w-6" />, label: 'Footprint', value: '~800 sq ft' },
-  { icon: <Maximize2 className="h-6 w-6" />, label: 'Ceilings', value: '12 ft high' },
+  { icon: <Ruler className="h-6 w-6" />, label: 'Footprint', value: '601.3 sq ft' },
+  { icon: <Maximize2 className="h-6 w-6" />, label: 'Ceilings', value: '9 ft 10 in' },
   { icon: <Sparkles className="h-6 w-6" />, label: 'Backdrops', value: 'White / grey / black + 30 colors' },
   { icon: <Car className="h-6 w-6" />, label: 'Parking', value: 'Free street parking' },
   { icon: <Wind className="h-6 w-6" />, label: 'Climate', value: 'A/C + heater' },
@@ -134,7 +134,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
                 Floor Plan
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Approx. 800 sq ft · 12 ft ceilings · cyclorama wall · prep area.
+                26'3" x 22'11" · 601.3 sq ft total area · 9'10" ceilings.
               </p>
             </div>
             <div className="bg-white shadow-xl p-4 sm:p-6">

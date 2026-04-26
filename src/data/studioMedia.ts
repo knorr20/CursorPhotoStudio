@@ -61,8 +61,9 @@ export const interiorPhotos: StudioPhoto[] = [
 
 export const floorPlan: StudioPhoto = {
   src: '/studio/floor-plan.png',
-  alt: 'Floor plan of 23 Photo Studio',
-  available: false,
+  alt: 'Studio floor plan with dimensions 26 ft 3 in by 22 ft 11 in, 9 ft 10 in height, and 601.3 sq ft total area',
+  available: true,
+  caption: 'Approx. 601.3 sq ft (26\'3" x 22\'11"), 9\'10" ceilings',
 };
 
 export const backstagePhotos: StudioPhoto[] = [
