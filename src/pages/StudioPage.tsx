@@ -114,7 +114,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
                 <StudioImage
                   key={photo.src}
                   photo={photo}
-                  aspect="video"
+                  aspect="landscape"
                   onClick={() => setInteriorIndex(idx)}
                 />
               ))}

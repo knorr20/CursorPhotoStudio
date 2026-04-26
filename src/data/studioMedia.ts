@@ -22,9 +22,9 @@ export const heroPhoto: StudioPhoto = {
 
 export const interiorPhotos: StudioPhoto[] = [
   {
-    src: '/studio/interior-1.jpg',
+    src: '/studio/interior-1.png',
     alt: '23 Photo Studio main shooting area with backdrop',
-    available: false,
+    available: true,
     caption: 'Main shooting area',
   },
   {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Camera, Maximize2 } from 'lucide-react';
 import type { StudioPhoto } from '../../data/studioMedia';
 
-type AspectRatio = 'square' | 'video' | 'portrait' | 'wide';
+type AspectRatio = 'square' | 'video' | 'portrait' | 'wide' | 'landscape';
 
 interface StudioImageProps {
   photo: StudioPhoto;
@@ -17,6 +17,7 @@ const aspectClass: Record<AspectRatio, string> = {
   video: 'aspect-video',
   portrait: 'aspect-[3/4]',
   wide: 'aspect-[16/7]',
+  landscape: 'aspect-[3/2]',
 };
 
 const StudioImage: React.FC<StudioImageProps> = ({
