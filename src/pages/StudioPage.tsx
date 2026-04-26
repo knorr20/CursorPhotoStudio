@@ -20,7 +20,6 @@ import {
   interiorPhotos,
   floorPlan,
   backstagePhotos,
-  type StudioPhoto,
 } from '../data/studioMedia';
 
 interface StudioPageProps {
@@ -39,7 +38,6 @@ const QUICK_SPECS: { icon: React.ReactNode; label: string; value: string }[] = [
 const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
   const [interiorIndex, setInteriorIndex] = useState<number | null>(null);
   const [backstageIndex, setBackstageIndex] = useState<number | null>(null);
-  const [planOpen, setPlanOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -71,8 +69,6 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
     );
     setCanonical('https://23photostudio.com/studio');
   }, []);
-
-  const planAsArray: StudioPhoto[] = [floorPlan];
 
   return (
     <div className="min-h-screen bg-white">
@@ -141,20 +137,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
               <StudioImage
                 photo={floorPlan}
                 aspect="video"
-                onClick={() => setPlanOpen(true)}
               />
-              {floorPlan.available && (
-                <div className="text-center mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setPlanOpen(true)}
-                    className="inline-flex items-center gap-2 text-sm font-heading font-black uppercase tracking-wide text-studio-green hover:text-studio-green-darker"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                    Open full size
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -272,12 +255,6 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
         index={backstageIndex}
         onClose={() => setBackstageIndex(null)}
         onNavigate={setBackstageIndex}
-      />
-      <StudioLightbox
-        photos={planAsArray}
-        index={planOpen ? 0 : null}
-        onClose={() => setPlanOpen(false)}
-        onNavigate={() => { /* single image — nothing to navigate */ }}
       />
     </div>
   );
