@@ -29,7 +29,7 @@ export const interiorPhotos: StudioPhoto[] = [
   },
   {
     src: '/studio/interior-2.png',
-    alt: 'Studio lighting setup with blue backdrop and modifiers at 23 Photo Studio',
+    alt: 'Backdrop stand zone with rollers and modifiers at 23 Photo Studio',
     available: true,
     caption: 'Dedicated backdrop stand area',
   },
