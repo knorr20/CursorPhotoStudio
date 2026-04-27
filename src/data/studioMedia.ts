@@ -2,7 +2,7 @@
  * Studio media manifest.
  *
  * To enable a real photo: drop the file at the matching `src` path inside
- * `public/` (so `/studio/interior-1.jpg` lives at `public/studio/interior-1.jpg`)
+ * `public/` (so `/studio/interior-1.png` lives at `public/studio/interior-1.png`)
  * and flip `available` to `true`. Until then, `<StudioImage />` renders a
  * branded placeholder so the layout stays intact.
  */
@@ -46,16 +46,16 @@ export const interiorPhotos: StudioPhoto[] = [
     caption: 'Another angle of the space',
   },
   {
-    src: '/studio/interior-5.jpg',
-    alt: 'Backdrop storage and color rolls',
-    available: false,
-    caption: 'Backdrop options',
+    src: '/studio/interior-5.png',
+    alt: 'Studio interior with gallery wall, mirror, and equipment at 23 Photo Studio',
+    available: true,
+    caption: 'Gallery wall area',
   },
   {
-    src: '/studio/interior-6.jpg',
-    alt: 'Studio entrance and reception',
-    available: false,
-    caption: 'Studio entrance',
+    src: '/studio/interior-6.png',
+    alt: 'On-site restroom with neon decor used as an optional creative set at 23 Photo Studio',
+    available: true,
+    caption: 'On-site restroom (creative set)',
   },
 ];
 
