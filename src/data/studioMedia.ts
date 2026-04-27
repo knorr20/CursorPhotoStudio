@@ -40,10 +40,10 @@ export const interiorPhotos: StudioPhoto[] = [
     caption: 'Artistic backdrop setup',
   },
   {
-    src: '/studio/interior-4.jpg',
-    alt: 'Makeup and prep area at 23 Photo Studio',
-    available: false,
-    caption: 'Prep area',
+    src: '/studio/interior-4.png',
+    alt: 'Wide interior view of 23 Photo Studio from another angle',
+    available: true,
+    caption: 'Another angle of the space',
   },
   {
     src: '/studio/interior-5.jpg',
