@@ -31,13 +31,13 @@ export const interiorPhotos: StudioPhoto[] = [
     src: '/studio/interior-2.png',
     alt: 'Studio lighting setup with blue backdrop and modifiers at 23 Photo Studio',
     available: true,
-    caption: 'Lighting setup with blue backdrop',
+    caption: 'Dedicated backdrop stand area',
   },
   {
-    src: '/studio/interior-3.jpg',
-    alt: 'Lighting setup with Profoto monolights and softboxes',
-    available: false,
-    caption: 'Lighting setup',
+    src: '/studio/interior-3.png',
+    alt: 'Artistic textured backdrops with professional lighting setup at 23 Photo Studio',
+    available: true,
+    caption: 'Artistic backdrop setup',
   },
   {
     src: '/studio/interior-4.jpg',
