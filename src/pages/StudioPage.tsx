@@ -265,8 +265,6 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
       </main>
 
       <Footer onNavigateAndScroll={onNavigateAndScroll} />
-      {/* Elfsight WhatsApp floating chat. CSS in index.css lifts it above mobile sticky UI. */}
-      <div id="whatsapp-chat-widget" className="elfsight-app-501d5393-5e8f-4d92-a575-3e7e35112618" data-elfsight-app-lazy />
 
       <StudioLightbox
         photos={interiorPhotos}

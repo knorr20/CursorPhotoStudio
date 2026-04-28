@@ -40,8 +40,6 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
         <Contact />
       </main>
       <Footer onNavigateAndScroll={onNavigateAndScroll} />
-      {/* Elfsight WhatsApp floating chat. CSS in index.css lifts it above the mobile sticky booking bar. */}
-      <div id="whatsapp-chat-widget" className="elfsight-app-501d5393-5e8f-4d92-a575-3e7e35112618" data-elfsight-app-lazy />
     </div>
   );
 };

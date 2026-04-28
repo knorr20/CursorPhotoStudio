@@ -7,6 +7,34 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
+  const reviewsRef = React.useRef<HTMLDivElement | null>(null);
+  const [shouldLoadReviews, setShouldLoadReviews] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('reviews-widget-loaded') === '1') {
+      setShouldLoadReviews(true);
+      return;
+    }
+
+    const target = reviewsRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoadReviews(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('reviews-widget-loaded', '1');
+        }
+        observer.disconnect();
+      },
+      { rootMargin: '300px 0px' }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <footer className="bg-studio-green text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -130,10 +158,14 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div ref={reviewsRef} className="border-t border-gray-800 mt-12 pt-8">
           <h3 className="text-center text-xl font-heading font-black uppercase mb-5">Client Reviews</h3>
           <div className="flex justify-center">
-            <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
+            {shouldLoadReviews ? (
+              <div className="elfsight-app-6074bbb3-b105-4073-9938-6145d122e13d" data-elfsight-app-lazy />
+            ) : (
+              <div className="h-10 w-full max-w-xl rounded bg-white/10" aria-hidden="true" />
+            )}
           </div>
         </div>
 
