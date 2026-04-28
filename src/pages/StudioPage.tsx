@@ -231,7 +231,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
             </div>
             <div className="bg-black shadow-xl overflow-hidden max-w-sm sm:max-w-md md:max-w-lg mx-auto aspect-[9/16] relative">
               <iframe
-                src="https://player.vimeo.com/video/1187162215?badge=0&autopause=0&player_id=0&app_id=58479"
+                src="https://player.vimeo.com/video/1187162215?autopause=0&loop=1&title=0&byline=0&portrait=0&badge=0&dnt=1"
                 className="absolute top-0 left-0 w-full h-full"
                 loading="lazy"
                 frameBorder="0"
@@ -265,6 +265,8 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
       </main>
 
       <Footer onNavigateAndScroll={onNavigateAndScroll} />
+      {/* Elfsight WhatsApp floating chat. CSS in index.css lifts it above mobile sticky UI. */}
+      <div id="whatsapp-chat-widget" className="elfsight-app-501d5393-5e8f-4d92-a575-3e7e35112618" data-elfsight-app-lazy />
 
       <StudioLightbox
         photos={interiorPhotos}
