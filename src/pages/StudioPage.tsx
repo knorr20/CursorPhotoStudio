@@ -137,6 +137,8 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
               <StudioImage
                 photo={floorPlan}
                 aspect="video"
+                objectFit="contain"
+                className="bg-white"
               />
             </div>
           </div>

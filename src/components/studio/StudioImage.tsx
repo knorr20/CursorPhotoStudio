@@ -7,6 +7,8 @@ type AspectRatio = 'square' | 'video' | 'portrait' | 'wide' | 'landscape';
 interface StudioImageProps {
   photo: StudioPhoto;
   aspect?: AspectRatio;
+  /** `cover` crops to fill the frame; `contain` shows the full image (letterboxing as needed). */
+  objectFit?: 'cover' | 'contain';
   onClick?: () => void;
   className?: string;
   priority?: boolean;
@@ -23,6 +25,7 @@ const aspectClass: Record<AspectRatio, string> = {
 const StudioImage: React.FC<StudioImageProps> = ({
   photo,
   aspect = 'video',
+  objectFit = 'cover',
   onClick,
   className = '',
   priority = false,
@@ -31,6 +34,10 @@ const StudioImage: React.FC<StudioImageProps> = ({
   const baseClass = `relative w-full ${aspectClass[aspect]} overflow-hidden bg-gray-100 ${className}`;
   const interactiveClass = interactive
     ? 'cursor-zoom-in group'
+    : '';
+  const imgObjectClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
+  const imgHoverClass = interactive
+    ? 'transition-transform duration-500 group-hover:scale-105'
     : '';
 
   if (!photo.available) {
@@ -66,7 +73,7 @@ const StudioImage: React.FC<StudioImageProps> = ({
         alt={photo.alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        className={`w-full h-full ${imgObjectClass} ${imgHoverClass}`}
       />
       {interactive && (
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
