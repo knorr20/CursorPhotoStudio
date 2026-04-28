@@ -91,7 +91,7 @@ const Contact = () => {
         <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
           <div className={contentVisible ? 'animate-fade-in-up' : 'scroll-hidden'} style={contentVisible ? { animationDelay: '100ms' } : undefined}>
-            <h3 className="text-2xl font-heading font-black text-gray-900 mb-8">Studio Information</h3>
+            <h3 className="text-2xl font-heading font-black text-gray-900 mb-8">Contact details</h3>
             
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
