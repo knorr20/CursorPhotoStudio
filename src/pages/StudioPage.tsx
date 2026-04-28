@@ -41,7 +41,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Studio Photos & Floor Plan | 23 Photo Studio North Hollywood';
+    document.title = 'Studio tour | 23 Photo Studio North Hollywood';
 
     const setMeta = (name: string, content: string) => {
       let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
@@ -65,7 +65,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
 
     setMeta(
       'description',
-      'See inside 23 Photo Studio in North Hollywood — interior photos, floor plan, equipment layout, and behind-the-scenes shots from real client shoots.'
+      'Studio tour of 23 Photo Studio in North Hollywood — interior photos, floor plan, space specs, behind-the-scenes stills, and a walkthrough video.'
     );
     setCanonical('https://23photostudio.com/studio');
   }, []);
@@ -90,7 +90,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
               Back to home
             </Link>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-black uppercase mb-4 text-balance">
-              Inside the Studio
+              Studio tour
             </h1>
             <p className="text-base sm:text-lg text-white/85 max-w-2xl mx-auto">
               Take a walk through our space — gear, layout, and the kind of work we host every day in North Hollywood.

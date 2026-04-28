@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
                 showSolid ? 'text-gray-700 hover:text-gray-900' : 'text-white/90 hover:text-white'
               } ${isStudioPage ? 'underline underline-offset-4 decoration-2' : ''}`}
             >
-              Studio
+              Studio tour
             </Link>
             <button
               onClick={() => scrollToSection('equipment')}
@@ -119,7 +119,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
                   isStudioPage ? 'text-studio-green' : ''
                 }`}
               >
-                Studio
+                Studio tour
               </Link>
               <button
                 onClick={() => scrollToSection('equipment')}

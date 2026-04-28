@@ -43,7 +43,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
                   to="/studio"
                   className="hover:text-rich-yellow transition-colors duration-200 text-left"
                 >
-                  Studio Photos & Tour
+                  Studio tour
                 </Link>
               </li>
               <li>
