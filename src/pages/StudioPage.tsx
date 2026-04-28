@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
-  Ruler,
-  Maximize2,
-  Wifi,
-  Car,
-  Wind,
-  Sparkles,
-  PlayCircle,
   ArrowLeft,
+  ArrowRight,
+  Brush,
+  Car,
+  Layers2,
+  Package,
+  PlayCircle,
+  Snowflake,
+  Wifi,
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -26,12 +26,36 @@ interface StudioPageProps {
 }
 
 const QUICK_SPECS: { icon: React.ReactNode; label: string; value: string }[] = [
-  { icon: <Ruler className="h-6 w-6" />, label: 'Footprint', value: '601.3 sq ft' },
-  { icon: <Maximize2 className="h-6 w-6" />, label: 'Ceilings', value: '9 ft 10 in' },
-  { icon: <Sparkles className="h-6 w-6" />, label: 'Backdrops', value: 'White / grey / black + 30 colors' },
-  { icon: <Car className="h-6 w-6" />, label: 'Parking', value: 'Free street parking' },
-  { icon: <Wind className="h-6 w-6" />, label: 'Climate', value: 'A/C + heater' },
-  { icon: <Wifi className="h-6 w-6" />, label: 'Wi-Fi', value: 'High-speed included' },
+  {
+    icon: <Car className="h-6 w-6" />,
+    label: 'Parking',
+    value: 'Free curb parking on a quiet residential block — spots are usually easy.',
+  },
+  {
+    icon: <Brush className="h-6 w-6" />,
+    label: 'Makeup area',
+    value: 'Portable station — we place it wherever works best for your set.',
+  },
+  {
+    icon: <Layers2 className="h-6 w-6" />,
+    label: 'Backdrops',
+    value: 'Seamless paper in classic colors plus exclusive artistic options.',
+  },
+  {
+    icon: <Snowflake className="h-6 w-6" />,
+    label: 'Climate (A/C)',
+    value: 'Strong A/C — stay comfortable when lights, gear, and crew add heat.',
+  },
+  {
+    icon: <Wifi className="h-6 w-6" />,
+    label: 'Wi-Fi',
+    value: 'High-speed included for cast & crew.',
+  },
+  {
+    icon: <Package className="h-6 w-6" />,
+    label: 'More gear (on site)',
+    value: 'Extra lights, photo & video gear to add on site — in-house, no extra rental run.',
+  },
 ];
 
 const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
@@ -161,7 +185,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
                   <div className="text-xs uppercase tracking-wider text-gray-500 font-heading font-black">
                     {spec.label}
                   </div>
-                  <div className="text-sm font-heading font-black text-gray-900 mt-1">
+                  <div className="text-xs sm:text-sm leading-snug font-heading font-black text-gray-900 mt-1">
                     {spec.value}
                   </div>
                 </div>
