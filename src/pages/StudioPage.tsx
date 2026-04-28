@@ -16,7 +16,6 @@ import Footer from '../components/Footer';
 import StudioImage from '../components/studio/StudioImage';
 import StudioLightbox from '../components/studio/StudioLightbox';
 import {
-  heroPhoto,
   interiorPhotos,
   floorPlan,
   backstagePhotos,
@@ -75,26 +74,22 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
       <Header onNavigateAndScroll={onNavigateAndScroll} />
 
       <main id="main-content">
-        {/* 1. Intro Hero */}
-        <section className="relative pt-24 pb-16 bg-gray-900 overflow-hidden">
-          <div className="absolute inset-0">
-            <StudioImage photo={heroPhoto} aspect="wide" priority className="h-full" />
-            <div className="absolute inset-0 bg-black/55" />
-          </div>
-          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+        {/* 1. Page header (compact, no full-bleed hero / placeholder) */}
+        <section className="pt-24 pb-8 sm:pb-10 bg-white border-b border-gray-200">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-white/60 hover:text-white/95 mb-4 font-medium tracking-wide transition-colors duration-200"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-gray-900 mb-3 font-medium tracking-wide transition-colors duration-200"
             >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-80" aria-hidden="true" />
-              <span className="border-b border-white/0 hover:border-white/40 pb-px transition-[border-color] duration-200">
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" aria-hidden="true" />
+              <span className="border-b border-transparent hover:border-gray-300 pb-px transition-[border-color] duration-200">
                 Back to home
               </span>
             </Link>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-black uppercase mb-4 text-balance">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-black uppercase mb-3 text-balance text-gray-900">
               Studio tour
             </h1>
-            <p className="text-base sm:text-lg text-white/85 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
               Take a walk through our space — gear, layout, and the kind of work we host every day in North Hollywood.
             </p>
           </div>

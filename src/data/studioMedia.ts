@@ -14,12 +14,6 @@ export type StudioPhoto = {
   caption?: string;
 };
 
-export const heroPhoto: StudioPhoto = {
-  src: '/studio/hero.jpg',
-  alt: 'Inside 23 Photo Studio in North Hollywood',
-  available: false,
-};
-
 export const interiorPhotos: StudioPhoto[] = [
   {
     src: '/studio/interior-1.png',
