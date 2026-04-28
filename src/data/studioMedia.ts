@@ -127,6 +127,12 @@ export const backstagePhotos: StudioPhoto[] = [
     caption: 'Red editorial styling',
   },
   {
+    src: '/studio/studio-action-angel-look.jpg',
+    alt: 'Stylistic angel-inspired portrait set at 23 Photo Studio',
+    available: true,
+    caption: 'Concept portrait with styled wings',
+  },
+  {
     src: '/studio/studio-action-12.jpg',
     alt: 'Stylized winter sports set with artificial snow',
     available: true,
@@ -161,5 +167,11 @@ export const backstagePhotos: StudioPhoto[] = [
     alt: 'Grainy monochrome editorial portrait on chair',
     available: true,
     caption: 'Textured editorial portrait',
+  },
+  {
+    src: '/studio/studio-action-projector-blue.jpg',
+    alt: 'Blue projector lighting portrait with bold color contrast',
+    available: true,
+    caption: 'Blue projector lighting look',
   },
 ];
