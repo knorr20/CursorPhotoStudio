@@ -1,7 +1,6 @@
 import React from 'react';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
-import SeoIntro from '../components/SeoIntro';
 import StudioFeatures from '../components/StudioFeatures';
 import Equipment from '../components/Equipment';
 import TariffSign from '../components/TariffSign';
@@ -28,7 +27,6 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">
         <Hero />
-        <SeoIntro />
         <StudioFeatures />
         <TariffSign />
         <Equipment />
