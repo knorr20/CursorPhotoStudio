@@ -84,10 +84,12 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
           <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-6 uppercase font-heading font-black tracking-wide"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-white/60 hover:text-white/95 mb-4 font-medium tracking-wide transition-colors duration-200"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back to home
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-80" aria-hidden="true" />
+              <span className="border-b border-white/0 hover:border-white/40 pb-px transition-[border-color] duration-200">
+                Back to home
+              </span>
             </Link>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-black uppercase mb-4 text-balance">
               Studio tour
