@@ -229,17 +229,16 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
                 See the studio on video
               </h2>
             </div>
-            <div className="bg-black shadow-xl overflow-hidden">
-              <video
-                controls
-                preload="metadata"
-                poster="/zaglushka.png"
-                className="w-full h-auto block"
-                aria-label="23 Photo Studio walkthrough reel"
-              >
-                <source src="/web5.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+            <div className="bg-black shadow-xl overflow-hidden max-w-sm sm:max-w-md md:max-w-lg mx-auto aspect-[9/16] relative">
+              <iframe
+                src="https://player.vimeo.com/video/1187162215?badge=0&autopause=0&player_id=0&app_id=58479"
+                className="absolute top-0 left-0 w-full h-full"
+                loading="lazy"
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                title="23 Photo Studio North Hollywood Burbank"
+              />
             </div>
           </div>
         </section>
