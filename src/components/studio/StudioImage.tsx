@@ -17,7 +17,7 @@ interface StudioImageProps {
 const aspectClass: Record<AspectRatio, string> = {
   square: 'aspect-square',
   video: 'aspect-video',
-  portrait: 'aspect-[3/4]',
+  portrait: 'aspect-[4/5]',
   wide: 'aspect-[16/7]',
   landscape: 'aspect-[3/2]',
 };

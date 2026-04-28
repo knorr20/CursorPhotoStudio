@@ -210,7 +210,7 @@ const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
                 <StudioImage
                   key={photo.src}
                   photo={photo}
-                  aspect="square"
+                  aspect="portrait"
                   onClick={() => setBackstageIndex(idx)}
                 />
               ))}
