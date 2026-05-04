@@ -19,7 +19,6 @@ function App() {
   const [pendingScrollTarget, setPendingScrollTarget] = useState<string | null>(null);
   const [adminSession, setAdminSession] = useState<Session | null>(null);
   const [adminAuthLoading, setAdminAuthLoading] = useState(true);
-  const [adminPasswordRecovery, setAdminPasswordRecovery] = useState(false);
   
   const STRIPE_PUBLISHABLE_KEY = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string) ?? '';
 
@@ -89,29 +88,15 @@ function App() {
       return;
     }
 
-    const urlIndicatesRecovery = () => {
-      if (typeof window === 'undefined') return false;
-      const hash = window.location.hash.replace(/^#/, '');
-      const fromHash = new URLSearchParams(hash).get('type') === 'recovery';
-      const fromQuery = new URLSearchParams(window.location.search).get('type') === 'recovery';
-      return fromHash || fromQuery;
-    };
-
     supabase.auth.getSession().then(({ data }) => {
       setAdminSession(data.session ?? null);
-      if (urlIndicatesRecovery()) {
-        setAdminPasswordRecovery(true);
-      }
       setAdminAuthLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setAdminSession(session);
-      if (event === 'PASSWORD_RECOVERY') {
-        setAdminPasswordRecovery(true);
-      }
     });
 
     return () => {
@@ -166,13 +151,6 @@ function App() {
               <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-700">
                 Checking admin session...
               </div>
-            ) : adminPasswordRecovery ? (
-              <AdminLoginCard
-                recoveryFlow
-                onRecoveryComplete={() => {
-                  setAdminPasswordRecovery(false);
-                }}
-              />
             ) : adminSession ? (
               <AdminBookingsPage
                 bookings={bookings}
