@@ -1,82 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ConsentPreferences, getDefaultConsent } from '../lib/consent';
+import type { CookieNoticeState } from '../lib/consent';
 
 interface CookieConsentBannerProps {
-  onSave: (prefs: ConsentPreferences) => void;
+  onSave: (state: CookieNoticeState) => void;
 }
 
 const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onSave }) => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [analytics, setAnalytics] = useState(false);
-  const [marketing, setMarketing] = useState(false);
-
-  const save = (next: { analytics: boolean; marketing: boolean }) => {
-    const base = getDefaultConsent();
-    onSave({
-      ...base,
-      analytics: next.analytics,
-      marketing: next.marketing,
-      updatedAt: new Date().toISOString(),
-    });
-  };
+  const now = () => new Date().toISOString();
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-[100] border-t border-slate-200 bg-white/95 backdrop-blur">
+    <div className="fixed bottom-0 inset-x-0 z-[100] border-t border-slate-200 bg-white/95 backdrop-blur shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <p className="text-sm text-slate-700">
-          We use essential cookies for booking and optional cookies for analytics/marketing. Manage your choices any
-          time in this banner. See <Link to="/privacy" className="underline">Privacy Policy</Link>.
+        <p className="text-sm text-slate-700 leading-relaxed">
+          We use standard tools to run online booking, secure payments, and guest messaging—same as most professional
+          studio sites. Details are in our{' '}
+          <Link to="/privacy" className="underline font-medium text-studio-green hover:text-studio-green-darker">
+            Privacy Policy
+          </Link>
+          .
         </p>
 
-        {showAdvanced && (
-          <div className="mt-3 grid gap-2 text-sm text-slate-700">
-            <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked disabled />
-              Essential cookies (always on)
-            </label>
-            <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} />
-              Analytics cookies
-            </label>
-            <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
-              Marketing cookies
-            </label>
-          </div>
-        )}
-
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => save({ analytics: false, marketing: false })}
-            className="px-3 py-2 text-sm border border-slate-300 rounded hover:bg-slate-50"
+            onClick={() => onSave({ preset: 'essential', updatedAt: now() })}
+            className="px-4 py-2.5 text-sm font-medium border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Essential only
           </button>
           <button
             type="button"
-            onClick={() => save({ analytics: true, marketing: true })}
-            className="px-3 py-2 text-sm bg-slate-900 text-white rounded hover:bg-slate-700"
+            onClick={() => onSave({ preset: 'all', updatedAt: now() })}
+            className="px-4 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-md hover:bg-slate-700"
           >
             Accept all
           </button>
           <button
             type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="px-3 py-2 text-sm border border-slate-300 rounded hover:bg-slate-50"
+            onClick={() => onSave({ preset: 'dismissed', updatedAt: now() })}
+            className="px-4 py-2.5 text-sm font-medium border border-slate-200 text-slate-600 rounded-md hover:bg-slate-50"
           >
-            {showAdvanced ? 'Hide settings' : 'Customize'}
+            Close
           </button>
-          {showAdvanced && (
-            <button
-              type="button"
-              onClick={() => save({ analytics, marketing })}
-              className="px-3 py-2 text-sm border border-slate-300 rounded hover:bg-slate-50"
-            >
-              Save choices
-            </button>
-          )}
         </div>
       </div>
     </div>

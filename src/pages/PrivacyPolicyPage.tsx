@@ -172,15 +172,15 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigateAndScro
             <div className="bg-white border border-gray-200 p-8 mb-8">
               <h2 className="text-2xl font-heading font-black text-gray-900 mb-4">7. Cookies and Tracking Technologies</h2>
               <p className="text-gray-700 mb-4">
-                We use essential storage to keep booking and security-related functionality working. Optional analytics and marketing technologies load only after your consent in our cookie banner.
+                Like most booking sites, we use cookies and similar technologies so scheduling, payments, and embedded tools (for example chat or reviews widgets) work reliably. You may see a short cookie notice when you visit—that banner records your preference for our records and does not change how the studio booking features operate.
               </p>
               <ul className="list-none text-gray-700 space-y-2">
-                <li><strong>Essential:</strong> fraud prevention, booking/session state, and required infrastructure.</li>
-                <li><strong>Analytics (optional):</strong> usage measurement to improve pages and booking flow.</li>
-                <li><strong>Marketing (optional):</strong> third-party widgets and ad-related measurement after consent.</li>
+                <li><strong>Booking & payments:</strong> Stripe and our hosting/database providers may set cookies needed to complete a reservation or payment securely.</li>
+                <li><strong>Site operations:</strong> basic session and security-related storage where applicable.</li>
+                <li><strong>Embedded services:</strong> third-party widgets we use for guest communication may set their own cookies per their policies.</li>
               </ul>
               <p className="text-gray-700 mt-4">
-                Third-party processors may include Stripe (payments), Supabase (data infrastructure), and Elfsight (embedded widgets when enabled). To withdraw consent, adjust your browser storage settings and re-open the site to make new choices in the banner.
+                Third-party processors may include Stripe (payments), Supabase (data infrastructure), and Elfsight (embedded widgets). You can clear site data in your browser at any time.
               </p>
             </div>
 
