@@ -2,11 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "npm:stripe@14";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+const DEFAULT_ALLOWED_ORIGINS = ["https://23photostudio.com", "http://localhost:5173"];
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? DEFAULT_ALLOWED_ORIGINS.join(","))
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const getCorsHeaders = (origin: string | null) => ({
+  "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+  Vary: "Origin",
+});
 
 type BookingPayload = {
   date: string;
@@ -131,6 +138,37 @@ const buildSupabaseAdminClient = () => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 };
+
+const getClientIp = (req: Request): string => {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip")?.trim() ?? "unknown";
+};
+
+async function verifyTurnstile(captchaToken: string, ipAddress: string): Promise<boolean> {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) return true;
+  if (!captchaToken?.trim()) return false;
+
+  try {
+    const body = new URLSearchParams({
+      secret,
+      response: captchaToken.trim(),
+      remoteip: ipAddress,
+    });
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    if (!verifyRes.ok) return false;
+    const verifyData = await verifyRes.json();
+    return Boolean(verifyData.success);
+  } catch (error) {
+    console.error("Turnstile verification failed:", error);
+    return false;
+  }
+}
 
 const finalizeBookingFromPaymentIntent = async (
   supabase: ReturnType<typeof createClient>,
@@ -303,7 +341,13 @@ const finalizeBookingFromPaymentIntent = async (
 };
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+      return new Response("Origin not allowed", { status: 403, headers: corsHeaders });
+    }
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
@@ -311,6 +355,12 @@ Deno.serve(async (req: Request) => {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+      return new Response(JSON.stringify({ error: "Origin not allowed" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -371,7 +421,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { action, amount, description, clientEmail, paymentIntentId, bookingData } = body;
+    const { action, amount, description, clientEmail, paymentIntentId, bookingData, captchaToken } = body;
 
     if (action === "create_payment_intent") {
       if (!amount || amount <= 0 || !bookingData) {
@@ -382,6 +432,13 @@ Deno.serve(async (req: Request) => {
       }
 
       const payload = bookingData as BookingPayload;
+      const captchaOk = await verifyTurnstile(String(captchaToken ?? ""), getClientIp(req));
+      if (!captchaOk) {
+        return new Response(JSON.stringify({ error: "CAPTCHA verification failed" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const serverCalculatedPrice = calculatePrice(payload.date, payload.startTime, payload.endTime);
       if (serverCalculatedPrice !== amount || serverCalculatedPrice !== payload.totalPrice) {
         return new Response(JSON.stringify({ error: "Price validation failed" }), {

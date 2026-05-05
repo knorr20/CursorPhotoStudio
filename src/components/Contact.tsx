@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, Navigation } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
+import TurnstileWidget from './TurnstileWidget';
 import { formatPhoneNumber } from '../utils/phoneFormat';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
@@ -18,8 +19,10 @@ const Contact = () => {
     message: ''
   });
   const [honeypotValue, setHoneypotValue] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) ?? '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +47,8 @@ const Contact = () => {
             message: formData.message,
             status: 'new'
           },
-          honeypot: honeypotValue
+          honeypot: honeypotValue,
+          captchaToken
         })
       });
       
@@ -56,6 +60,7 @@ const Contact = () => {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', message: '' });
       setHoneypotValue('');
+      setCaptchaToken('');
     } catch (error) {
       console.error('Error sending message:', error);
       setSubmitStatus('error');
@@ -235,7 +240,7 @@ const Contact = () => {
               
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (Boolean(turnstileSiteKey) && !captchaToken)}
                 className="w-full bg-studio-green text-white px-6 py-3 hover:bg-studio-green-darker transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed font-heading font-black uppercase"
               >
                 {isSubmitting ? (
@@ -250,6 +255,9 @@ const Contact = () => {
                   </>
                 )}
               </button>
+              {turnstileSiteKey && (
+                <TurnstileWidget siteKey={turnstileSiteKey} onTokenChange={setCaptchaToken} />
+              )}
             </form>
             
             {/* Status Messages */}

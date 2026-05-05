@@ -99,5 +99,18 @@ export interface Database {
         };
       };
     };
+    Views: {
+      bookings_public_calendar: {
+        Row: {
+          id: number;
+          date: string;
+          start_time: string;
+          end_time: string;
+          duration: string;
+          status: 'confirmed' | 'cancelled';
+          created_at: string;
+        };
+      };
+    };
   };
 }

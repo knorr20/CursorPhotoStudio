@@ -1,12 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+const DEFAULT_ALLOWED_ORIGINS = ["https://23photostudio.com", "http://localhost:5173"];
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? DEFAULT_ALLOWED_ORIGINS.join(","))
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const getCorsHeaders = (origin: string | null) => ({
+  "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  Vary: "Origin",
+});
 
 interface RateLimitRecord {
   id: string;
@@ -14,6 +20,42 @@ interface RateLimitRecord {
   endpoint: string;
   request_count: number;
   window_start: string;
+}
+
+const asSafeString = (value: unknown, maxLength: number): string =>
+  typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+
+const getClientIp = (req: Request): string => {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return req.headers.get("x-real-ip")?.trim() || "unknown";
+};
+
+async function verifyTurnstile(captchaToken: string, ipAddress: string): Promise<boolean> {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) return true;
+  if (!captchaToken) return false;
+
+  try {
+    const body = new URLSearchParams({
+      secret,
+      response: captchaToken,
+      remoteip: ipAddress,
+    });
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    if (!verifyRes.ok) return false;
+    const verifyData = await verifyRes.json();
+    return Boolean(verifyData.success);
+  } catch (error) {
+    console.error("Turnstile verification failed:", error);
+    return false;
+  }
 }
 
 function getTimeValue(timeString: string): number {
@@ -91,7 +133,7 @@ async function checkRateLimit(
 
     if (fetchError) {
       console.error("Error fetching rate limit record:", fetchError);
-      return { allowed: true };
+      return { allowed: false };
     }
 
     if (!existingRecord) {
@@ -108,7 +150,7 @@ async function checkRateLimit(
 
       if (insertError) {
         console.error("Error creating rate limit record:", insertError);
-        return { allowed: true };
+        return { allowed: false };
       }
 
       return { allowed: true };
@@ -131,7 +173,7 @@ async function checkRateLimit(
 
       if (updateError) {
         console.error("Error resetting rate limit record:", updateError);
-        return { allowed: true };
+        return { allowed: false };
       }
 
       return { allowed: true };
@@ -151,18 +193,24 @@ async function checkRateLimit(
 
     if (updateError) {
       console.error("Error updating rate limit record:", updateError);
-      return { allowed: true };
+      return { allowed: false };
     }
 
     return { allowed: true };
   } catch (error) {
     console.error("Error in rate limiting check:", error);
-    return { allowed: true };
+    return { allowed: false };
   }
 }
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+      return new Response("Origin not allowed", { status: 403, headers: corsHeaders });
+    }
     return new Response(null, {
       status: 200,
       headers: corsHeaders,
@@ -176,14 +224,17 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+      return new Response(JSON.stringify({ error: "Origin not allowed" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const clientIP =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const clientIP = getClientIp(req);
 
     const body = await req.json();
-    const { type, data, honeypot } = body;
+    const { type, data, honeypot, captchaToken } = body;
 
     if (!type || !data || (type !== "booking" && type !== "contact")) {
       return new Response(
@@ -199,6 +250,13 @@ Deno.serve(async (req: Request) => {
       console.log(`Honeypot triggered for IP: ${clientIP}`);
       return new Response(JSON.stringify({ error: "Spam detected" }), {
         status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const captchaOk = await verifyTurnstile(asSafeString(captchaToken, 2048), clientIP);
+    if (!captchaOk) {
+      return new Response(JSON.stringify({ error: "CAPTCHA verification failed" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -267,12 +325,29 @@ Deno.serve(async (req: Request) => {
 
       result = { success: true, message: "Precheck passed" };
     } else if (type === "contact") {
+      const name = asSafeString(data.name, 120);
+      const email = asSafeString(data.email, 254).toLowerCase();
+      const phone = asSafeString(data.phone, 40);
+      const message = asSafeString(data.message, 3000);
+      if (!name || !email || !message) {
+        return new Response(JSON.stringify({ error: "Missing required contact fields" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return new Response(JSON.stringify({ error: "Invalid email format" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { error } = await supabase.from("contact_messages").insert([
         {
-          name: data.name,
-          email: data.email,
-          phone: data.phone || null,
-          message: data.message,
+          name,
+          email,
+          phone: phone || null,
+          message,
           status: "new",
         },
       ]);
@@ -282,10 +357,10 @@ Deno.serve(async (req: Request) => {
       await invokeSendEmail({
         type: "contact",
         data: {
-          name: data.name,
-          email: data.email,
-          phone: data.phone || "",
-          message: data.message,
+          name,
+          email,
+          phone: phone || "",
+          message,
         },
       });
 

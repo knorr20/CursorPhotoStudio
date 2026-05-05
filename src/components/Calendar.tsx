@@ -6,6 +6,7 @@ import StripePaymentModal from './StripePaymentModal';
 import TermsAndPrivacyLinks from './TermsAndPrivacyLinks';
 import BookingStepsIndicator from './BookingStepsIndicator';
 import MobileBookingBar from './MobileBookingBar';
+import TurnstileWidget from './TurnstileWidget';
 import { getTimeValue, isWeekend, calculateDuration, calculatePrice } from '../utils/bookingCalculations';
 import { formatPhoneNumber, isValidPhone } from '../utils/phoneFormat';
 import { TIME_SLOTS, CLOSING_LABEL, HOURS_RANGE_LABEL } from '../utils/studioHours';
@@ -37,6 +38,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   });
   const [honeypotValue, setHoneypotValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const validateField = useCallback((name: string, value: string): string => {
@@ -560,6 +562,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   };
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) ?? '';
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -571,6 +574,10 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     });
 
     if (!isFormValid() || !selectedDate || !selectedStartTime || !selectedEndTime) return;
+    if (turnstileSiteKey && !captchaToken) {
+      setSubmitError('Please complete CAPTCHA before continuing to payment.');
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -616,6 +623,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
       setAgreedToTerms(false);
       setHoneypotValue('');
       setFieldTouched({});
+      setCaptchaToken('');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit booking. Please try again.';
       setSubmitError(message);
@@ -1253,6 +1261,9 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                     </button>
                   </div>
                 )}
+                {turnstileSiteKey && (
+                  <TurnstileWidget siteKey={turnstileSiteKey} onTokenChange={setCaptchaToken} />
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
@@ -1264,7 +1275,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
                   </button>
                   <button
                     type="submit"
-                    disabled={!agreedToTerms || isSubmitting}
+                    disabled={!agreedToTerms || isSubmitting || (Boolean(turnstileSiteKey) && !captchaToken)}
                     className={`sm:flex-1 py-3 px-6 font-heading font-black uppercase transition-colors duration-200 flex items-center justify-center gap-2 ${
                       !agreedToTerms || isSubmitting
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -1312,6 +1323,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
             agreedToTerms: confirmedBookingDetails.agreedToTerms,
             termsAgreedAt: confirmedBookingDetails.termsAgreedAt,
           }}
+          captchaToken={captchaToken}
           stripePublishableKey={stripePublishableKey}
         />
       )}

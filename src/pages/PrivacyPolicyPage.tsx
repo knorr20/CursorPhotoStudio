@@ -171,8 +171,16 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigateAndScro
 
             <div className="bg-white border border-gray-200 p-8 mb-8">
               <h2 className="text-2xl font-heading font-black text-gray-900 mb-4">7. Cookies and Tracking Technologies</h2>
-              <p className="text-gray-700">
-                Our website may use cookies and similar technologies to improve user experience and analyze usage. You can control cookie settings through your browser. We are not liable for third-party tracking.
+              <p className="text-gray-700 mb-4">
+                We use essential storage to keep booking and security-related functionality working. Optional analytics and marketing technologies load only after your consent in our cookie banner.
+              </p>
+              <ul className="list-none text-gray-700 space-y-2">
+                <li><strong>Essential:</strong> fraud prevention, booking/session state, and required infrastructure.</li>
+                <li><strong>Analytics (optional):</strong> usage measurement to improve pages and booking flow.</li>
+                <li><strong>Marketing (optional):</strong> third-party widgets and ad-related measurement after consent.</li>
+              </ul>
+              <p className="text-gray-700 mt-4">
+                Third-party processors may include Stripe (payments), Supabase (data infrastructure), and Elfsight (embedded widgets when enabled). To withdraw consent, adjust your browser storage settings and re-open the site to make new choices in the banner.
               </p>
             </div>
 

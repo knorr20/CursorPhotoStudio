@@ -12,14 +12,14 @@ export const useBookings = () => {
     date: row.date,
     startTime: row.start_time,
     endTime: row.end_time,
-    duration: row.duration,
-    clientName: row.client_name,
-    clientEmail: row.client_email,
-    clientPhone: row.client_phone,
-    projectType: row.project_type,
-    totalPrice: row.total_price,
+  duration: row.duration ?? '',
+  clientName: row.client_name ?? 'Booked slot',
+  clientEmail: row.client_email ?? '',
+  clientPhone: row.client_phone ?? '',
+  projectType: row.project_type ?? 'N/A',
+  totalPrice: row.total_price ?? 0,
     status: row.status,
-    notes: row.notes,
+  notes: row.notes ?? '',
     agreedToTerms: row.agreed_to_terms || false,
     termsAgreedAt: row.terms_agreed_at,
     createdAt: row.created_at,
@@ -38,10 +38,15 @@ export const useBookings = () => {
     }
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const query = session
+        ? supabase.from('bookings').select('*').order('created_at', { ascending: false })
+        : supabase.from('bookings_public_calendar').select('*').order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
