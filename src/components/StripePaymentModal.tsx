@@ -33,7 +33,6 @@ interface StripePaymentModalProps {
     agreedToTerms: boolean;
     termsAgreedAt: string | null;
   };
-  captchaToken: string;
 }
 
 // Inner form — must live inside <Elements>
@@ -196,7 +195,6 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
   description,
   stripePublishableKey,
   bookingData,
-  captchaToken,
 }) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
@@ -233,7 +231,6 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
             description,
             clientEmail,
             bookingData,
-            captchaToken,
           }),
         });
         const data = await res.json();
@@ -263,7 +260,6 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
     bookingData.notes,
     bookingData.agreedToTerms,
     bookingData.termsAgreedAt,
-    captchaToken,
   ]);
 
   if (!isOpen) return null;

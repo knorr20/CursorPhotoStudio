@@ -1,24 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const DEFAULT_ALLOWED_ORIGINS = ["https://23photostudio.com", "http://localhost:5173"];
-const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? DEFAULT_ALLOWED_ORIGINS.join(","))
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const getCorsHeaders = (origin: string | null) => ({
-  "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-  Vary: "Origin",
-});
-
-const isServiceAuthorized = (req: Request): boolean => {
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!serviceRoleKey) return false;
-  const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "").trim();
-  const apiKey = req.headers.get("apikey")?.trim();
-  return authHeader === serviceRoleKey || apiKey === serviceRoleKey;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 const ADMIN_EMAIL = "LA23PRODUCTION@GMAIL.COM";
@@ -293,13 +279,7 @@ async function sendEmail(
 }
 
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get("origin");
-  const corsHeaders = getCorsHeaders(origin);
-
   if (req.method === "OPTIONS") {
-    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-      return new Response("Origin not allowed", { status: 403, headers: corsHeaders });
-    }
     return new Response(null, {
       status: 200,
       headers: corsHeaders,
@@ -310,18 +290,6 @@ Deno.serve(async (req: Request) => {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-      return new Response(JSON.stringify({ error: "Origin not allowed" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (!isServiceAuthorized(req)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
