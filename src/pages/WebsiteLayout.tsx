@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Hero from '../components/Hero';
 import DeferredSection from '../components/DeferredSection';
 import Footer from '../components/Footer';
+import { usePrefetchHomeSections } from '../hooks/usePrefetchHomeSections';
 import { Booking } from '../types/booking';
 
 const StudioFeatures = lazy(() => import('../components/StudioFeatures'));
@@ -26,6 +27,8 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
   stripePublishableKey,
   onNavigateAndScroll,
 }) => {
+  usePrefetchHomeSections();
+
   const deferredFallback = <div className="min-h-[220px]" aria-hidden="true" />;
 
   return (
@@ -63,7 +66,7 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
             <Equipment />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="560px" minHeightClassName="min-h-[720px]">
+        <DeferredSection rootMargin="720px" minHeightClassName="min-h-[720px]">
           <Suspense fallback={deferredFallback}>
             <Calendar
               bookings={bookings}
@@ -72,7 +75,7 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
             />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="640px" minHeightClassName="min-h-[420px]">
+        <DeferredSection rootMargin="800px" minHeightClassName="min-h-[420px]">
           <Suspense fallback={deferredFallback}>
             <Contact />
           </Suspense>
