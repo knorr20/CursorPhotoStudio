@@ -50,13 +50,13 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
             aria-label="Go to 23 Photo Studio homepage"
           >
             <picture>
-              <source srcSet="/IMG_2896-2.jpg" type="image/jpeg" />
+              <source srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x" type="image/jpeg" />
               <img
                 src="/IMG_2896-2.png"
                 alt="23 Photo Studio logo - Professional photo studio rental North Hollywood"
                 className={`h-10 w-auto transition-all duration-300 ${showSolid ? '' : 'brightness-0 invert'}`}
-                width={512}
-                height={496}
+                width={144}
+                height={139}
                 decoding="async"
               />
             </picture>

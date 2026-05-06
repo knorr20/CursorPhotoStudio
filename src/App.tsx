@@ -81,30 +81,40 @@ function App() {
     }
   }, [location.pathname, pendingScrollTarget]);
 
-  // Defer non-critical chat script to protect first paint / LCP.
+  // Defer non-critical Elfsight widgets until user interaction.
+  // This protects startup metrics on mobile and still loads widgets shortly after.
   React.useEffect(() => {
     if (location.pathname === '/admin') return;
 
     const scriptId = 'elfsight-platform-script';
     if (document.getElementById(scriptId)) return;
 
+    let activated = false;
     const inject = () => {
+      if (activated) return;
+      activated = true;
       if (document.getElementById(scriptId)) return;
       const script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://elfsightcdn.com/platform.js';
       script.async = true;
       document.head.appendChild(script);
+      cleanup();
     };
 
-    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
-    if (idle) {
-      idle(inject);
-      return;
-    }
+    const activateOnIntent = () => inject();
+    const events: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'keydown'];
+    events.forEach((eventName) => window.addEventListener(eventName, activateOnIntent, { passive: true }));
 
-    const timer = window.setTimeout(inject, 1200);
-    return () => window.clearTimeout(timer);
+    // Safety net: if no interactions happen, still enable chat after the page settles.
+    const timer = window.setTimeout(inject, 12000);
+
+    const cleanup = () => {
+      window.clearTimeout(timer);
+      events.forEach((eventName) => window.removeEventListener(eventName, activateOnIntent));
+    };
+
+    return cleanup;
   }, [location.pathname]);
 
   React.useEffect(() => {

@@ -44,7 +44,6 @@ const Hero = () => {
           muted
           playsInline
           preload="none"
-          poster={heroPosterJpeg}
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source src="/web4.mp4" media="(max-width: 767px)" type="video/mp4" />

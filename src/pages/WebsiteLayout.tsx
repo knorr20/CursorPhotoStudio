@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import PageSeo from '../components/PageSeo';
 import { HOME_PAGE_SEO } from '../lib/seoConstants';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
-import StudioFeatures from '../components/StudioFeatures';
-import Equipment from '../components/Equipment';
-import TariffSign from '../components/TariffSign';
-import Calendar from '../components/Calendar';
-import Contact from '../components/Contact';
+import DeferredSection from '../components/DeferredSection';
 import Footer from '../components/Footer';
 import { Booking } from '../types/booking';
+
+const StudioFeatures = lazy(() => import('../components/StudioFeatures'));
+const TariffSign = lazy(() => import('../components/TariffSign'));
+const Equipment = lazy(() => import('../components/Equipment'));
+const Calendar = lazy(() => import('../components/Calendar'));
+const Contact = lazy(() => import('../components/Contact'));
 
 interface WebsiteLayoutProps {
   bookings: Booking[];
@@ -24,6 +26,8 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
   stripePublishableKey,
   onNavigateAndScroll,
 }) => {
+  const deferredFallback = <div className="min-h-[220px]" aria-hidden="true" />;
+
   return (
     <div className="min-h-screen bg-white">
       <PageSeo
@@ -44,15 +48,35 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">
         <Hero />
-        <StudioFeatures />
-        <TariffSign />
-        <Equipment />
-        <Calendar
-          bookings={bookings}
-          onBookingFinalized={onBookingFinalized}
-          stripePublishableKey={stripePublishableKey}
-        />
-        <Contact />
+        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[280px]">
+          <Suspense fallback={deferredFallback}>
+            <StudioFeatures />
+          </Suspense>
+        </DeferredSection>
+        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[220px]">
+          <Suspense fallback={deferredFallback}>
+            <TariffSign />
+          </Suspense>
+        </DeferredSection>
+        <DeferredSection rootMargin="480px" minHeightClassName="min-h-[560px]">
+          <Suspense fallback={deferredFallback}>
+            <Equipment />
+          </Suspense>
+        </DeferredSection>
+        <DeferredSection rootMargin="560px" minHeightClassName="min-h-[720px]">
+          <Suspense fallback={deferredFallback}>
+            <Calendar
+              bookings={bookings}
+              onBookingFinalized={onBookingFinalized}
+              stripePublishableKey={stripePublishableKey}
+            />
+          </Suspense>
+        </DeferredSection>
+        <DeferredSection rootMargin="640px" minHeightClassName="min-h-[420px]">
+          <Suspense fallback={deferredFallback}>
+            <Contact />
+          </Suspense>
+        </DeferredSection>
       </main>
       <Footer onNavigateAndScroll={onNavigateAndScroll} />
     </div>

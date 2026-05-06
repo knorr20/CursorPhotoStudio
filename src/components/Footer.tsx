@@ -15,13 +15,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <picture>
-                <source srcSet="/IMG_2896-2.jpg" type="image/jpeg" />
+                <source srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x" type="image/jpeg" />
                 <img
                   src="/IMG_2896-2.png"
                   alt="23 Photo Studio logo - Professional photo studio rental in North Hollywood, Los Angeles"
                   className="h-12 w-auto brightness-0 invert"
-                  width={512}
-                  height={496}
+                  width={144}
+                  height={139}
                   loading="lazy"
                   decoding="async"
                 />
