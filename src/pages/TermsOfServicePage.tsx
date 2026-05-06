@@ -1,6 +1,6 @@
 import React from 'react';
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import PageSeo from '../components/PageSeo';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ArrowLeft, FileText, AlertTriangle, DollarSign, Clock, Shield, Camera } from 'lucide-react';
@@ -9,41 +9,21 @@ interface TermsOfServicePageProps {
   onNavigateAndScroll: (sectionId: string) => void;
 }
 
+const TERMS_SEO = {
+  title: 'Terms of Service | 23 Photo Studio North Hollywood',
+  description:
+    'Review the Terms of Service for 23 Photo Studio rentals in North Hollywood, including booking, payments, cancellation, and studio rules.',
+  canonicalPath: '/terms',
+} as const;
+
 const TermsOfServicePage: React.FC<TermsOfServicePageProps> = ({ onNavigateAndScroll }) => {
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'Terms of Service | 23 Photo Studio North Hollywood';
-
-    const setMeta = (name: string, content: string) => {
-      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.name = name;
-        document.head.appendChild(tag);
-      }
-      tag.content = content;
-    };
-
-    const setCanonical = (href: string) => {
-      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'canonical';
-        document.head.appendChild(link);
-      }
-      link.href = href;
-    };
-
-    setMeta(
-      'description',
-      'Review the Terms of Service for 23 Photo Studio rentals in North Hollywood, including booking, payments, cancellation, and studio rules.'
-    );
-    setCanonical('https://23photostudio.com/terms');
-  }, []);
-
   return (
     <div className="min-h-screen bg-white">
+      <PageSeo
+        title={TERMS_SEO.title}
+        description={TERMS_SEO.description}
+        canonicalPath={TERMS_SEO.canonicalPath}
+      />
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       
       {/* Hero Section */}

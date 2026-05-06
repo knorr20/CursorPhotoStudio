@@ -1,4 +1,6 @@
 import React from 'react';
+import PageSeo from '../components/PageSeo';
+import { HOME_PAGE_SEO } from '../lib/seoConstants';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import StudioFeatures from '../components/StudioFeatures';
@@ -24,6 +26,13 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-white">
+      <PageSeo
+        title={HOME_PAGE_SEO.title}
+        description={HOME_PAGE_SEO.description}
+        canonicalPath={HOME_PAGE_SEO.canonicalPath}
+        ogTitle={HOME_PAGE_SEO.ogTitle}
+        ogDescription={HOME_PAGE_SEO.ogDescription}
+      />
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">
         <Hero />

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import PageSeo from '../components/PageSeo';
 import {
   ArrowLeft,
   ArrowRight,
@@ -58,43 +59,26 @@ const QUICK_SPECS: { icon: React.ReactNode; label: string; value: string }[] = [
   },
 ];
 
+const STUDIO_SEO = {
+  title: 'Studio tour | 23 Photo Studio North Hollywood',
+  description:
+    'Studio tour of 23 Photo Studio in North Hollywood — interior photos, floor plan, space specs, behind-the-scenes stills, and a walkthrough video.',
+  canonicalPath: '/studio',
+  ogTitle: 'Studio tour | 23 Photo Studio North Hollywood',
+} as const;
+
 const StudioPage: React.FC<StudioPageProps> = ({ onNavigateAndScroll }) => {
   const [interiorIndex, setInteriorIndex] = useState<number | null>(null);
   const [backstageIndex, setBackstageIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'Studio tour | 23 Photo Studio North Hollywood';
-
-    const setMeta = (name: string, content: string) => {
-      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.name = name;
-        document.head.appendChild(tag);
-      }
-      tag.content = content;
-    };
-
-    const setCanonical = (href: string) => {
-      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'canonical';
-        document.head.appendChild(link);
-      }
-      link.href = href;
-    };
-
-    setMeta(
-      'description',
-      'Studio tour of 23 Photo Studio in North Hollywood — interior photos, floor plan, space specs, behind-the-scenes stills, and a walkthrough video.'
-    );
-    setCanonical('https://23photostudio.com/studio');
-  }, []);
-
   return (
     <div className="min-h-screen bg-white">
+      <PageSeo
+        title={STUDIO_SEO.title}
+        description={STUDIO_SEO.description}
+        canonicalPath={STUDIO_SEO.canonicalPath}
+        ogTitle={STUDIO_SEO.ogTitle}
+      />
       <Header onNavigateAndScroll={onNavigateAndScroll} />
 
       <main id="main-content">

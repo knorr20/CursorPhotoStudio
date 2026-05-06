@@ -1,12 +1,21 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, ArrowLeft, Camera } from 'lucide-react';
+import PageSeo from '../components/PageSeo';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const canonicalPath = location.pathname || '/';
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <PageSeo
+        title="Page not found | 23 Photo Studio North Hollywood"
+        description="The page you requested does not exist on 23 Photo Studio. Return home or use the navigation menu."
+        canonicalPath={canonicalPath}
+        robots="noindex, nofollow"
+      />
       <div className="max-w-lg w-full text-center">
         <div className="mb-8">
           <div className="w-24 h-24 bg-gray-900 flex items-center justify-center mx-auto mb-6">

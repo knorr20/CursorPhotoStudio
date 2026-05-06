@@ -14,6 +14,7 @@ import { useBookings } from './hooks/useBookings';
 import { useContactMessages } from './hooks/useContactMessages';
 import { supabase } from './lib/supabase';
 import { loadCookieNotice, type CookieNoticeChoice } from './lib/cookieNotice';
+import { Helmet } from 'react-helmet-async';
 
 function App() {
   const navigate = useNavigate();
@@ -80,16 +81,6 @@ function App() {
   }, [location.pathname, pendingScrollTarget]);
 
   React.useEffect(() => {
-    let robots = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
-    if (!robots) {
-      robots = document.createElement('meta');
-      robots.name = 'robots';
-      document.head.appendChild(robots);
-    }
-    robots.content = location.pathname === '/admin' ? 'noindex, nofollow' : 'index, follow';
-  }, [location.pathname]);
-
-  React.useEffect(() => {
     if (!supabase) {
       setAdminAuthLoading(false);
       return;
@@ -115,6 +106,12 @@ function App() {
   return (
     <ErrorBoundary>
     <div className={`relative ${showCookieBanner ? 'pb-28 sm:pb-24' : ''}`}>
+      {location.pathname === '/admin' && (
+        <Helmet>
+          <title>Admin | 23 Photo Studio</title>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+      )}
       <Routes>
         <Route 
           path="/" 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import PageSeo from '../components/PageSeo';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ArrowLeft, Shield, Eye, Lock, Database, Mail, Phone } from 'lucide-react';
@@ -9,41 +9,21 @@ interface PrivacyPolicyPageProps {
   onNavigateAndScroll: (sectionId: string) => void;
 }
 
+const PRIVACY_SEO = {
+  title: 'Privacy Policy | 23 Photo Studio North Hollywood',
+  description:
+    'Read the Privacy Policy for 23 Photo Studio in North Hollywood, including how booking and contact information is collected and used.',
+  canonicalPath: '/privacy',
+} as const;
+
 const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigateAndScroll }) => {
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'Privacy Policy | 23 Photo Studio North Hollywood';
-
-    const setMeta = (name: string, content: string) => {
-      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.name = name;
-        document.head.appendChild(tag);
-      }
-      tag.content = content;
-    };
-
-    const setCanonical = (href: string) => {
-      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'canonical';
-        document.head.appendChild(link);
-      }
-      link.href = href;
-    };
-
-    setMeta(
-      'description',
-      'Read the Privacy Policy for 23 Photo Studio in North Hollywood, including how booking and contact information is collected and used.'
-    );
-    setCanonical('https://23photostudio.com/privacy');
-  }, []);
-
   return (
     <div className="min-h-screen bg-white">
+      <PageSeo
+        title={PRIVACY_SEO.title}
+        description={PRIVACY_SEO.description}
+        canonicalPath={PRIVACY_SEO.canonicalPath}
+      />
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       
       {/* Hero Section */}
