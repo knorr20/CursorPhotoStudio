@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, MapPin, Navigation } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
 
 const Hero = () => {
@@ -31,10 +31,6 @@ const Hero = () => {
           RENT A FULLY EQUIPPED
           <span className="block text-gray-300 font-heading">PHOTO STUDIO</span>
         </h1>
-        <p className="text-sm sm:text-base text-gray-200 max-w-3xl mx-auto mb-6">
-          23 Photo Studio is a photo and video studio rental in North Hollywood with professional
-          Profoto lighting, online booking, and flexible scheduling.
-        </p>
 
         <button
           onClick={() => setShowDirectionsModal(true)}
