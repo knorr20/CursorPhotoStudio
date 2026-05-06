@@ -32,6 +32,14 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
         canonicalPath={HOME_PAGE_SEO.canonicalPath}
         ogTitle={HOME_PAGE_SEO.ogTitle}
         ogDescription={HOME_PAGE_SEO.ogDescription}
+        linkPreloads={[
+          {
+            href: '/zaglushka-hero.jpg',
+            as: 'image',
+            type: 'image/jpeg',
+            fetchPriority: 'high',
+          },
+        ]}
       />
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">

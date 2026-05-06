@@ -1,48 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
 
+const heroPosterJpeg = '/zaglushka-hero.jpg';
+const heroPosterPng = '/zaglushka.png';
+
 const Hero = () => {
   const [showDirectionsModal, setShowDirectionsModal] = useState(false);
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
-  const studioAddress = '10710 BURBANK BLVD, NORTH HOLLYWOOD, CA 91601';
-
-  useEffect(() => {
+  const heroPrefs = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return { deferHeroVideo: false, startWithVideo: false };
+    }
     const mobile = window.matchMedia('(max-width: 767px)').matches;
     const reducedData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-
-    // Desktop keeps current behavior; mobile/data-saver starts from static poster.
-    if (!mobile && !reducedData) {
-      setShouldLoadVideo(true);
-      return;
-    }
-
-    let done = false;
-    const activate = () => {
-      if (done) return;
-      done = true;
-      setShouldLoadVideo(true);
-      window.removeEventListener('pointerdown', activate);
-      window.removeEventListener('touchstart', activate);
-      window.removeEventListener('scroll', activate);
-      window.removeEventListener('keydown', activate);
-    };
-
-    window.addEventListener('pointerdown', activate, { passive: true });
-    window.addEventListener('touchstart', activate, { passive: true });
-    window.addEventListener('scroll', activate, { passive: true });
-    window.addEventListener('keydown', activate, { passive: true });
-
-    const idleTimer = window.setTimeout(activate, 3000);
-
-    return () => {
-      window.clearTimeout(idleTimer);
-      window.removeEventListener('pointerdown', activate);
-      window.removeEventListener('touchstart', activate);
-      window.removeEventListener('scroll', activate);
-      window.removeEventListener('keydown', activate);
-    };
+    const deferHeroVideo = mobile || !!reducedData;
+    return { deferHeroVideo, startWithVideo: !deferHeroVideo };
   }, []);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(heroPrefs.startWithVideo);
+
+  const studioAddress = '10710 BURBANK BLVD, NORTH HOLLYWOOD, CA 91601';
+
+  const heroStill = (
+    <picture>
+      <source srcSet={heroPosterJpeg} type="image/jpeg" />
+      <img
+        src={heroPosterPng}
+        alt="23 Photo Studio"
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        fetchPriority="high"
+        decoding="async"
+        width={486}
+        height={274}
+      />
+    </picture>
+  );
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center bg-gray-700">
@@ -53,7 +44,7 @@ const Hero = () => {
           muted
           playsInline
           preload="none"
-          poster="/zaglushka.png"
+          poster={heroPosterJpeg}
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source src="/web4.mp4" media="(max-width: 767px)" type="video/mp4" />
@@ -61,13 +52,7 @@ const Hero = () => {
           Your browser does not support the video tag.
         </video>
       ) : (
-        <img
-          src="/zaglushka.png"
-          alt="23 Photo Studio"
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          fetchPriority="high"
-          decoding="async"
-        />
+        heroStill
       )}
 
       {/* Dark overlay for better text readability */}
@@ -105,10 +90,22 @@ const Hero = () => {
         </div>
       </div>
 
+      {heroPrefs.deferHeroVideo && !shouldLoadVideo && (
+        <div className="absolute bottom-24 left-1/2 z-20 -translate-x-1/2 sm:bottom-28">
+          <button
+            type="button"
+            onClick={() => setShouldLoadVideo(true)}
+            className="text-center text-xs font-heading font-bold uppercase tracking-wide text-white/90 underline decoration-white/50 underline-offset-4 transition-colors hover:text-rich-yellow hover:decoration-rich-yellow"
+          >
+            Play background video
+          </button>
+        </div>
+      )}
+
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-white animate-bounce">
+        <div className="flex h-10 w-6 justify-center rounded-full border-2 border-white/50">
+          <div className="mt-2 h-3 w-1 animate-pulse rounded-full bg-white/50" />
         </div>
       </div>
 

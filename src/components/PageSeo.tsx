@@ -2,6 +2,14 @@ import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { DEFAULT_OG_IMAGE, SITE_ORIGIN } from '../lib/seoConstants';
 
+export type LinkPreloadConfig = {
+  href: string;
+  as: 'image' | 'font' | 'style' | 'script' | 'fetch';
+  type?: string;
+  fetchPriority?: 'high' | 'low' | 'auto';
+  crossOrigin?: 'anonymous' | 'use-credentials';
+};
+
 export interface PageSeoProps {
   title: string;
   description: string;
@@ -13,6 +21,8 @@ export interface PageSeoProps {
   ogImage?: string;
   /** Scroll to top on mount (default true). Set false if the parent handles scroll. */
   scrollToTop?: boolean;
+  /** Optional LCP or critical asset preloads (home hero JPEG, etc.) */
+  linkPreloads?: LinkPreloadConfig[];
 }
 
 export function canonicalUrlFromPath(path: string): string {
@@ -34,6 +44,7 @@ export default function PageSeo({
   ogDescription,
   ogImage = DEFAULT_OG_IMAGE,
   scrollToTop = true,
+  linkPreloads,
 }: PageSeoProps) {
   useEffect(() => {
     if (scrollToTop) window.scrollTo(0, 0);
@@ -45,6 +56,17 @@ export default function PageSeo({
 
   return (
     <Helmet prioritizeDefaultTitle>
+      {linkPreloads?.map((l, i) => (
+        <link
+          key={`${l.href}-${i}`}
+          rel="preload"
+          href={l.href}
+          as={l.as}
+          type={l.type}
+          fetchPriority={l.fetchPriority}
+          crossOrigin={l.crossOrigin}
+        />
+      ))}
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />

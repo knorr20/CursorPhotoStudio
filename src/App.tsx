@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import WebsiteLayout from './pages/WebsiteLayout';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import TermsOfServicePage from './pages/TermsOfServicePage';
-import StudioPage from './pages/StudioPage';
-import NotFoundPage from './pages/NotFoundPage';
-import AdminBookingsPage from './pages/AdminBookingsPage';
 import AdminLoginCard from './components/AdminLoginCard';
+
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const StudioPage = lazy(() => import('./pages/StudioPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const AdminBookingsPage = lazy(() => import('./pages/AdminBookingsPage'));
 import ErrorBoundary from './components/ErrorBoundary';
 import CookieNoticeBanner from './components/CookieNoticeBanner';
 import { useBookings } from './hooks/useBookings';
@@ -128,6 +129,12 @@ function App() {
     };
   }, []);
 
+  const routeFallback = (
+    <div className="flex min-h-screen items-center justify-center bg-white text-sm font-medium text-gray-600">
+      Loading…
+    </div>
+  );
+
   // Main routing
   return (
     <ErrorBoundary>
@@ -138,6 +145,7 @@ function App() {
           <meta name="robots" content="noindex, nofollow" />
         </Helmet>
       )}
+      <Suspense fallback={routeFallback}>
       <Routes>
         <Route 
           path="/" 
@@ -204,6 +212,7 @@ function App() {
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
 
       {/* Admin-only loading overlay (kept for /admin where data IS the page) */}
       {(loading || messagesLoading) && location.pathname === '/admin' && (

@@ -49,11 +49,17 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
             className="hover:opacity-80 transition-opacity duration-200"
             aria-label="Go to 23 Photo Studio homepage"
           >
-            <img
-              src="/IMG_2896-2.png"
-              alt="23 Photo Studio logo - Professional photo studio rental North Hollywood"
-              className={`h-10 w-auto transition-all duration-300 ${showSolid ? '' : 'brightness-0 invert'}`}
-            />
+            <picture>
+              <source srcSet="/IMG_2896-2.jpg" type="image/jpeg" />
+              <img
+                src="/IMG_2896-2.png"
+                alt="23 Photo Studio logo - Professional photo studio rental North Hollywood"
+                className={`h-10 w-auto transition-all duration-300 ${showSolid ? '' : 'brightness-0 invert'}`}
+                width={512}
+                height={496}
+                decoding="async"
+              />
+            </picture>
           </button>
 
           {/* Desktop Navigation */}

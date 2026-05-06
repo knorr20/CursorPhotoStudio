@@ -2,6 +2,16 @@ import React from 'react';
 import { Camera, Lightbulb, Wind, Volume2, Monitor, Palette } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
+type EquipmentItem = {
+  icon?: React.ReactNode;
+  name: string;
+  quantity: string;
+  description: string;
+  imageSrc?: string;
+  imageSrcJpg?: string;
+  altText?: string;
+};
+
 const ADDITIONAL_BACKDROP_COLORS: { hex: string; name: string }[] = [
   { hex: '#FF0000', name: 'Red' },
   { hex: '#DC143C', name: 'Crimson' },
@@ -40,13 +50,14 @@ const Equipment = () => {
   const { ref: gridRef, isVisible: gridVisible } = useScrollReveal({ threshold: 0.05 });
   const { ref: backdropRef, isVisible: backdropVisible } = useScrollReveal({ threshold: 0.1 });
 
-  const allEquipment = [
+  const allEquipment: EquipmentItem[] = [
     {
       icon: <Lightbulb className="h-6 w-6" />,
       name: "Profoto D2 500Ws AirTTL Monolights",
       quantity: "2x",
       description: "Professional studio lighting",
       imageSrc: "/d-2 2x.png",
+      imageSrcJpg: "/d-2 2x.jpg",
       altText: "Profoto D2 500Ws AirTTL Monolight professional studio lighting equipment"
     },
     {
@@ -55,6 +66,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "High-power studio light",
       imageSrc: "/d-3 1x.png",
+      imageSrcJpg: "/d-3 1x.jpg",
       altText: "Profoto Pro-D3 750Ws Monolight high-power professional studio lighting"
     },
     {
@@ -63,6 +75,7 @@ const Equipment = () => {
       quantity: "2x",
       description: "Strip lighting modifier",
       imageSrc: "/strip 1x4 profoto 23 films.png",
+      imageSrcJpg: "/strip 1x4 profoto 23 films.jpg",
       altText: "Profoto Strip Softbox 1x4 feet with silver interior for professional photography lighting"
     },
     {
@@ -70,6 +83,7 @@ const Equipment = () => {
       quantity: "2x",
       description: "Light focusing reflector",
       imageSrc: "/Zoom_reflector_profoto.png",
+      imageSrcJpg: "/Zoom_reflector_profoto.jpg",
       altText: "Profoto Zoom Reflector 2 light focusing reflector for studio photography"
     },
     {
@@ -77,6 +91,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "Large softbox modifier",
       imageSrc: "/profoto_201505_rectangular_softbox_3_x_1726738217_1848650 (1)-1.png",
+      imageSrcJpg: "/profoto_201505_rectangular_softbox_3_x_1726738217_1848650 (1)-1.jpg",
       altText: "Profoto Rectangular Softbox 3x4 feet with silver interior for professional studio lighting and photography"
     },
     {
@@ -84,6 +99,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "Beauty dish for portraits",
       imageSrc: "/Profoto-Beauty-Dish-Silver.png",
+      imageSrcJpg: "/Profoto-Beauty-Dish-Silver.jpg",
       altText: "Profoto Silver Softlight Beauty Dish Reflector for professional studio photography and portraits"
     },
     {
@@ -91,6 +107,7 @@ const Equipment = () => {
       quantity: "2x",
       description: "Light control panels",
       imageSrc: "/Foldable-V-Flat-BlackWhite-23.png",
+      imageSrcJpg: "/Foldable-V-Flat-BlackWhite-23.jpg",
       altText: "V-FLAT WORLD Foldable V-Flat 2.0 light control panels for professional studio photography lighting control"
     },
     {
@@ -98,6 +115,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "Air circulation and effects",
       imageSrc: "/orange-commercial-electric-industrial-fans.png",
+      imageSrcJpg: "/orange-commercial-electric-industrial-fans.jpg",
       altText: "Heavy Duty Direct Drive Tilt Drum Fan for studio air circulation and special effects"
     },
     {
@@ -105,6 +123,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "High-quality audio for shoots",
       imageSrc: "/bose speaker.png",
+      imageSrcJpg: "/bose speaker.jpg",
       altText: "Bose Bluetooth Speaker for studio audio in Los Angeles, Burbank - perfect for music during photo shoots at 23 Photo Studio"
     },
     {
@@ -113,6 +132,7 @@ const Equipment = () => {
       quantity: "1x",
       description: "Background support system",
       imageSrc: "/BACKGROUNDS.png",
+      imageSrcJpg: "/BACKGROUNDS.jpg",
       altText: "Professional backdrop holder and stands system for photography at 23 Photo Studio in North Hollywood, Los Angeles - supports seamless paper rolls and fabric backgrounds"
     }
   ];
@@ -160,15 +180,18 @@ const Equipment = () => {
                 <div className="text-center">
                   {item.imageSrc ? (
                     <div className="mb-4 flex justify-center">
-                      <img
-                        src={item.imageSrc}
-                        alt={item.altText || `${item.name} - Professional studio equipment available for rental`}
-                        className="w-24 h-24 object-contain"
-                        loading="lazy"
-                        decoding="async"
-                        width={96}
-                        height={96}
-                      />
+                      <picture>
+                        {item.imageSrcJpg ? <source srcSet={item.imageSrcJpg} type="image/jpeg" /> : null}
+                        <img
+                          src={item.imageSrc}
+                          alt={item.altText || `${item.name} - Professional studio equipment available for rental`}
+                          className="h-24 w-24 object-contain"
+                          loading="lazy"
+                          decoding="async"
+                          width={96}
+                          height={96}
+                        />
+                      </picture>
                     </div>
                   ) : (
                     <div className="text-gray-700 mb-4 flex justify-center">

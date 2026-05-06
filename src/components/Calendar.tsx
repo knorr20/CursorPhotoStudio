@@ -1,8 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, Suspense, lazy } from 'react';
 import { ChevronLeft, ChevronRight, Clock, DollarSign, X, CheckCircle, User, Mail, Phone, FileText, Camera, AlertTriangle, Check, Pencil } from 'lucide-react';
 import { Booking, BookingFormData } from '../types/booking';
 import BookingConfirmationModal from './BookingConfirmationModal';
-import StripePaymentModal from './StripePaymentModal';
+
+const StripePaymentModal = lazy(() => import('./StripePaymentModal'));
 import TermsAndPrivacyLinks from './TermsAndPrivacyLinks';
 import BookingStepsIndicator from './BookingStepsIndicator';
 import MobileBookingBar from './MobileBookingBar';
@@ -1289,31 +1290,33 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         </div>
       </div>
 
-      {/* Stripe Payment Modal */}
-      {confirmedBookingDetails && (
-        <StripePaymentModal
-          isOpen={showPaymentModal}
-          onClose={handlePaymentClose}
-          onPaymentSuccess={handlePaymentSuccess}
-          amount={confirmedBookingDetails.totalPrice}
-          clientEmail={confirmedBookingDetails.clientEmail}
-          description={`Studio Rental – ${confirmedBookingDetails.date} ${confirmedBookingDetails.startTime}–${confirmedBookingDetails.endTime}`}
-          bookingData={{
-            date: confirmedBookingDetails.date,
-            startTime: confirmedBookingDetails.startTime,
-            endTime: confirmedBookingDetails.endTime,
-            duration: confirmedBookingDetails.duration,
-            clientName: confirmedBookingDetails.clientName,
-            clientEmail: confirmedBookingDetails.clientEmail,
-            clientPhone: confirmedBookingDetails.clientPhone,
-            projectType: confirmedBookingDetails.projectType,
-            totalPrice: confirmedBookingDetails.totalPrice,
-            notes: confirmedBookingDetails.notes,
-            agreedToTerms: confirmedBookingDetails.agreedToTerms,
-            termsAgreedAt: confirmedBookingDetails.termsAgreedAt,
-          }}
-          stripePublishableKey={stripePublishableKey}
-        />
+      {/* Stripe Payment Modal — lazy chunk loads only when payment step opens */}
+      {showPaymentModal && confirmedBookingDetails && (
+        <Suspense fallback={null}>
+          <StripePaymentModal
+            isOpen={showPaymentModal}
+            onClose={handlePaymentClose}
+            onPaymentSuccess={handlePaymentSuccess}
+            amount={confirmedBookingDetails.totalPrice}
+            clientEmail={confirmedBookingDetails.clientEmail}
+            description={`Studio Rental – ${confirmedBookingDetails.date} ${confirmedBookingDetails.startTime}–${confirmedBookingDetails.endTime}`}
+            bookingData={{
+              date: confirmedBookingDetails.date,
+              startTime: confirmedBookingDetails.startTime,
+              endTime: confirmedBookingDetails.endTime,
+              duration: confirmedBookingDetails.duration,
+              clientName: confirmedBookingDetails.clientName,
+              clientEmail: confirmedBookingDetails.clientEmail,
+              clientPhone: confirmedBookingDetails.clientPhone,
+              projectType: confirmedBookingDetails.projectType,
+              totalPrice: confirmedBookingDetails.totalPrice,
+              notes: confirmedBookingDetails.notes,
+              agreedToTerms: confirmedBookingDetails.agreedToTerms,
+              termsAgreedAt: confirmedBookingDetails.termsAgreedAt,
+            }}
+            stripePublishableKey={stripePublishableKey}
+          />
+        </Suspense>
       )}
 
       {/* Booking Confirmation Modal */}
