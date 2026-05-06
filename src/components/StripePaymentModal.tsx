@@ -7,9 +7,11 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 import { X, CreditCard, Lock, AlertTriangle } from 'lucide-react';
+import TurnstileWidget from './TurnstileWidget';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const TURNSTILE_SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) ?? '';
 
 interface StripePaymentModalProps {
   isOpen: boolean;
@@ -199,6 +201,8 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const publishableOk = Boolean(stripePublishableKey?.trim());
   const [stripePromise] = useState(() =>
     publishableOk ? loadStripe(stripePublishableKey) : Promise.resolve(null)
@@ -212,10 +216,21 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
       setClientSecret(null);
       setPaymentIntentId(null);
       setInitError(null);
+      setTurnstileToken(null);
       return;
     }
 
-    if (!stripePublishableKey?.trim()) return;
+    setClientSecret(null);
+    setPaymentIntentId(null);
+    setInitError(null);
+    setTurnstileToken(null);
+    setTurnstileResetKey((k) => k + 1);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !stripePublishableKey?.trim() || !turnstileToken) return;
+
+    let cancelled = false;
 
     const create = async () => {
       try {
@@ -231,20 +246,29 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
             description,
             clientEmail,
             bookingData,
+            turnstileToken,
           }),
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error ?? 'Failed to initialize payment');
-        setClientSecret(data.clientSecret);
-        setPaymentIntentId(data.paymentIntentId);
+        if (!cancelled) {
+          setClientSecret(data.clientSecret);
+          setPaymentIntentId(data.paymentIntentId);
+        }
       } catch (err) {
-        setInitError(err instanceof Error ? err.message : 'Failed to initialize payment');
+        if (!cancelled) {
+          setInitError(err instanceof Error ? err.message : 'Failed to initialize payment');
+        }
       }
     };
 
     create();
+    return () => {
+      cancelled = true;
+    };
   }, [
     isOpen,
+    turnstileToken,
     amount,
     description,
     clientEmail,
@@ -260,6 +284,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
     bookingData.notes,
     bookingData.agreedToTerms,
     bookingData.termsAgreedAt,
+    stripePublishableKey,
   ]);
 
   if (!isOpen) return null;
@@ -297,6 +322,18 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
               <p className="text-red-700 text-sm whitespace-pre-wrap">{missingPublishableMessage}</p>
             </div>
           </div>
+        ) : !turnstileToken ? (
+          <div className="p-6">
+            <p className="text-sm text-gray-600 mb-3">
+              Complete verification to load the secure payment form.
+            </p>
+            <TurnstileWidget
+              siteKey={TURNSTILE_SITE_KEY}
+              onVerify={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              resetKey={turnstileResetKey}
+            />
+          </div>
         ) : initError ? (
           <div className="p-6">
             <div className="bg-red-50 border border-red-200 p-4 flex items-start gap-3">
@@ -307,7 +344,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
         ) : !clientSecret ? (
           <div className="p-6 flex items-center justify-center gap-2 py-16 text-gray-400 text-sm">
             <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-            Initializing...
+            Initializing payment...
           </div>
         ) : (
           <Elements

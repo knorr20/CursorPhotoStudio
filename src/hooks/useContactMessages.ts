@@ -57,7 +57,11 @@ export const useContactMessages = () => {
     }
   }, []);
 
-  const addContactMessage = async (newMessage: Omit<ContactMessage, 'id' | 'createdAt'>, honeypot: string = '') => {
+  const addContactMessage = async (
+    newMessage: Omit<ContactMessage, 'id' | 'createdAt'>,
+    honeypot: string = '',
+    turnstileToken: string = ''
+  ) => {
     if (!isSupabaseConfigured) {
       const msg = 'Missing Supabase environment variables. Configure Vercel and redeploy.';
       setError(msg);
@@ -74,6 +78,7 @@ export const useContactMessages = () => {
           type: 'contact',
           data: newMessage,
           honeypot: honeypot,
+          turnstileToken,
         }),
       });
 

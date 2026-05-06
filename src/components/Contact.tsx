@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, Navigation } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
+import TurnstileWidget from './TurnstileWidget';
 import { formatPhoneNumber } from '../utils/phoneFormat';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+
+const TURNSTILE_SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) ?? '';
 
 const Contact = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollReveal({ threshold: 0.2 });
@@ -18,11 +21,22 @@ const Contact = () => {
     message: ''
   });
   const [honeypotValue, setHoneypotValue] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken(null);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!turnstileToken) {
+      setSubmitStatus('error');
+      return;
+    }
     
     setIsSubmitting(true);
     setSubmitStatus('idle');
@@ -44,7 +58,8 @@ const Contact = () => {
             message: formData.message,
             status: 'new'
           },
-          honeypot: honeypotValue
+          honeypot: honeypotValue,
+          turnstileToken,
         })
       });
       
@@ -56,6 +71,8 @@ const Contact = () => {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', message: '' });
       setHoneypotValue('');
+      setTurnstileToken(null);
+      setTurnstileResetKey((k) => k + 1);
     } catch (error) {
       console.error('Error sending message:', error);
       setSubmitStatus('error');
@@ -232,10 +249,20 @@ const Contact = () => {
                   placeholder="Tell us about your project and studio needs..."
                 />
               </div>
+
+              <div className="space-y-2">
+                <span className="block text-sm font-medium text-gray-700">Verification</span>
+                <TurnstileWidget
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onVerify={setTurnstileToken}
+                  onExpire={handleTurnstileExpire}
+                  resetKey={turnstileResetKey}
+                />
+              </div>
               
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !turnstileToken}
                 className="w-full bg-studio-green text-white px-6 py-3 hover:bg-studio-green-darker transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed font-heading font-black uppercase"
               >
                 {isSubmitting ? (

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "npm:stripe@14";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -370,10 +371,25 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const clientIP =
+      req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || undefined;
+
     const body = await req.json();
-    const { action, amount, description, clientEmail, paymentIntentId, bookingData } = body;
+    const { action, amount, description, clientEmail, paymentIntentId, bookingData, turnstileToken } =
+      body;
 
     if (action === "create_payment_intent") {
+      const turnstileCheck = await verifyTurnstileToken(
+        typeof turnstileToken === "string" ? turnstileToken : undefined,
+        clientIP
+      );
+      if (!turnstileCheck.ok) {
+        return new Response(JSON.stringify({ error: turnstileCheck.error }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       if (!amount || amount <= 0 || !bookingData) {
         return new Response(JSON.stringify({ error: "Invalid amount" }), {
           status: 400,

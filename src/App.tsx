@@ -9,9 +9,11 @@ import NotFoundPage from './pages/NotFoundPage';
 import AdminBookingsPage from './pages/AdminBookingsPage';
 import AdminLoginCard from './components/AdminLoginCard';
 import ErrorBoundary from './components/ErrorBoundary';
+import CookieNoticeBanner from './components/CookieNoticeBanner';
 import { useBookings } from './hooks/useBookings';
 import { useContactMessages } from './hooks/useContactMessages';
 import { supabase } from './lib/supabase';
+import { loadCookieNotice, type CookieNoticeChoice } from './lib/cookieNotice';
 
 function App() {
   const navigate = useNavigate();
@@ -21,6 +23,11 @@ function App() {
   const [adminAuthLoading, setAdminAuthLoading] = useState(true);
   
   const STRIPE_PUBLISHABLE_KEY = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string) ?? '';
+
+  const [cookieNoticeChoice, setCookieNoticeChoice] = useState<CookieNoticeChoice | null>(() =>
+    loadCookieNotice()
+  );
+  const showCookieBanner = cookieNoticeChoice === null && location.pathname !== '/admin';
 
   // Use the Supabase hook for bookings
   const {
@@ -107,7 +114,7 @@ function App() {
   // Main routing
   return (
     <ErrorBoundary>
-    <div className="relative">
+    <div className={`relative ${showCookieBanner ? 'pb-28 sm:pb-24' : ''}`}>
       <Routes>
         <Route 
           path="/" 
@@ -222,6 +229,10 @@ function App() {
           className="elfsight-app-501d5393-5e8f-4d92-a575-3e7e35112618"
           data-elfsight-app-lazy
         />
+      )}
+
+      {showCookieBanner && (
+        <CookieNoticeBanner onChoose={(choice) => setCookieNoticeChoice(choice)} />
       )}
     </div>
     </ErrorBoundary>

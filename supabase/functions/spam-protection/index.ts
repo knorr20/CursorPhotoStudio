@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -183,7 +184,7 @@ Deno.serve(async (req: Request) => {
       "unknown";
 
     const body = await req.json();
-    const { type, data, honeypot } = body;
+    const { type, data, honeypot, turnstileToken } = body;
 
     if (!type || !data || (type !== "booking" && type !== "contact")) {
       return new Response(
@@ -199,6 +200,17 @@ Deno.serve(async (req: Request) => {
       console.log(`Honeypot triggered for IP: ${clientIP}`);
       return new Response(JSON.stringify({ error: "Spam detected" }), {
         status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const turnstileCheck = await verifyTurnstileToken(
+      typeof turnstileToken === "string" ? turnstileToken : undefined,
+      typeof clientIP === "string" ? clientIP : undefined
+    );
+    if (!turnstileCheck.ok) {
+      return new Response(JSON.stringify({ error: turnstileCheck.error }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
