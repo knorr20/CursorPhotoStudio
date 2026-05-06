@@ -1,26 +1,74 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import DirectionsModal from './DirectionsModal';
 
 const Hero = () => {
   const [showDirectionsModal, setShowDirectionsModal] = useState(false);
-  const studioAddress = "10710 BURBANK BLVD, NORTH HOLLYWOOD, CA 91601";
-  
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const studioAddress = '10710 BURBANK BLVD, NORTH HOLLYWOOD, CA 91601';
+
+  useEffect(() => {
+    const mobile = window.matchMedia('(max-width: 767px)').matches;
+    const reducedData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+
+    // Desktop keeps current behavior; mobile/data-saver starts from static poster.
+    if (!mobile && !reducedData) {
+      setShouldLoadVideo(true);
+      return;
+    }
+
+    let done = false;
+    const activate = () => {
+      if (done) return;
+      done = true;
+      setShouldLoadVideo(true);
+      window.removeEventListener('pointerdown', activate);
+      window.removeEventListener('touchstart', activate);
+      window.removeEventListener('scroll', activate);
+      window.removeEventListener('keydown', activate);
+    };
+
+    window.addEventListener('pointerdown', activate, { passive: true });
+    window.addEventListener('touchstart', activate, { passive: true });
+    window.addEventListener('scroll', activate, { passive: true });
+    window.addEventListener('keydown', activate, { passive: true });
+
+    const idleTimer = window.setTimeout(activate, 3000);
+
+    return () => {
+      window.clearTimeout(idleTimer);
+      window.removeEventListener('pointerdown', activate);
+      window.removeEventListener('touchstart', activate);
+      window.removeEventListener('scroll', activate);
+      window.removeEventListener('keydown', activate);
+    };
+  }, []);
+
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center bg-gray-700">
-      {/* Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        poster="/zaglushka.png"
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/web5.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      {shouldLoadVideo ? (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
+          poster="/zaglushka.png"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="/web4.mp4" media="(max-width: 767px)" type="video/mp4" />
+          <source src="/web5.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <img
+          src="/zaglushka.png"
+          alt="23 Photo Studio"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          fetchPriority="high"
+          decoding="async"
+        />
+      )}
 
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/40 z-5"></div>

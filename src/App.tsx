@@ -80,6 +80,32 @@ function App() {
     }
   }, [location.pathname, pendingScrollTarget]);
 
+  // Defer non-critical chat script to protect first paint / LCP.
+  React.useEffect(() => {
+    if (location.pathname === '/admin') return;
+
+    const scriptId = 'elfsight-platform-script';
+    if (document.getElementById(scriptId)) return;
+
+    const inject = () => {
+      if (document.getElementById(scriptId)) return;
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://elfsightcdn.com/platform.js';
+      script.async = true;
+      document.head.appendChild(script);
+    };
+
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    if (idle) {
+      idle(inject);
+      return;
+    }
+
+    const timer = window.setTimeout(inject, 1200);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname]);
+
   React.useEffect(() => {
     if (!supabase) {
       setAdminAuthLoading(false);

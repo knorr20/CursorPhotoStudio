@@ -165,6 +165,9 @@ const Equipment = () => {
                         alt={item.altText || `${item.name} - Professional studio equipment available for rental`}
                         className="w-24 h-24 object-contain"
                         loading="lazy"
+                        decoding="async"
+                        width={96}
+                        height={96}
                       />
                     </div>
                   ) : (
