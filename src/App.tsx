@@ -13,7 +13,7 @@ import CookieConsentBanner from './components/CookieConsentBanner';
 import { useBookings } from './hooks/useBookings';
 import { useContactMessages } from './hooks/useContactMessages';
 import { supabase } from './lib/supabase';
-import { loadCookieNotice, saveCookieNotice, type CookieNoticeState } from './lib/consent';
+import { ConsentPreferences, loadConsentPreferences, saveConsentPreferences } from './lib/consent';
 
 const ADMIN_EMAIL_ALLOWLIST = new Set(['la23production@gmail.com']);
 
@@ -31,7 +31,7 @@ function App() {
   const [adminSession, setAdminSession] = useState<Session | null>(null);
   const [adminHasAccess, setAdminHasAccess] = useState(false);
   const [adminAuthLoading, setAdminAuthLoading] = useState(true);
-  const [cookieNotice, setCookieNotice] = useState<CookieNoticeState | null>(() => loadCookieNotice());
+  const [consentPreferences, setConsentPreferences] = useState<ConsentPreferences | null>(null);
   
   const STRIPE_PUBLISHABLE_KEY = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string) ?? '';
 
@@ -96,6 +96,30 @@ function App() {
   }, [location.pathname]);
 
   React.useEffect(() => {
+    setConsentPreferences(loadConsentPreferences());
+  }, []);
+
+  React.useEffect(() => {
+    const scriptId = 'elfsight-platform-script';
+    const existing = document.getElementById(scriptId);
+
+    if (consentPreferences?.marketing) {
+      if (!existing) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://elfsightcdn.com/platform.js';
+        script.async = true;
+        document.head.appendChild(script);
+      }
+      return;
+    }
+
+    if (existing) {
+      existing.remove();
+    }
+  }, [consentPreferences?.marketing]);
+
+  React.useEffect(() => {
     if (!supabase) {
       setAdminAuthLoading(false);
       return;
@@ -119,10 +143,11 @@ function App() {
     };
   }, []);
 
-  // Main routing — cookie banner saves choice for trust/UI only; scripts/widgets are not gated.
-  const onCookieNoticeSave = (next: CookieNoticeState) => {
-    saveCookieNotice(next);
-    setCookieNotice(next);
+  // Main routing
+  const showMarketingWidgets = Boolean(consentPreferences?.marketing);
+  const onConsentSave = (prefs: ConsentPreferences) => {
+    saveConsentPreferences(prefs);
+    setConsentPreferences(prefs);
   };
 
   return (
@@ -240,14 +265,14 @@ function App() {
           </div>
         </div>
       )}
-      {location.pathname !== '/admin' && (
+      {location.pathname !== '/admin' && showMarketingWidgets && (
         <div
           id="whatsapp-chat-widget"
           className="elfsight-app-501d5393-5e8f-4d92-a575-3e7e35112618"
           data-elfsight-app-lazy
         />
       )}
-      {!cookieNotice && <CookieConsentBanner onSave={onCookieNoticeSave} />}
+      {!consentPreferences && <CookieConsentBanner onSave={onConsentSave} />}
     </div>
     </ErrorBoundary>
   );
