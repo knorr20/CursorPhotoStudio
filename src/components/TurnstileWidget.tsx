@@ -78,6 +78,7 @@ const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
         containerRef.current.innerHTML = '';
         const id = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
+          theme: 'light',
           callback: (token: string) => onVerifyRef.current(token),
           'expired-callback': () => onExpireRef.current?.(),
         });
