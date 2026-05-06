@@ -14,18 +14,17 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <picture>
-                <source srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x" type="image/jpeg" />
-                <img
-                  src="/IMG_2896-2.png"
-                  alt="23 Photo Studio logo - Professional photo studio rental in North Hollywood, Los Angeles"
-                  className="h-12 w-auto brightness-0 invert"
-                  width={144}
-                  height={139}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </picture>
+              <img
+                src="/IMG_2896-2-small.jpg"
+                srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x"
+                sizes="48px"
+                alt="23 Photo Studio logo - Professional photo studio rental in North Hollywood, Los Angeles"
+                className="h-12 w-auto brightness-0 invert"
+                width={144}
+                height={139}
+                loading="eager"
+                decoding="sync"
+              />
             </div>
             <p className="text-gray-400 mb-4">
               Professional photo and video studio rental in North Hollywood. 

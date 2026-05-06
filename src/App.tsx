@@ -81,8 +81,7 @@ function App() {
     }
   }, [location.pathname, pendingScrollTarget]);
 
-  // Defer non-critical Elfsight widgets until user interaction.
-  // This protects startup metrics on mobile and still loads widgets shortly after.
+  // Defer Elfsight slightly: intent, first scroll (mobile), visibility, or short timeout.
   React.useEffect(() => {
     if (location.pathname === '/admin') return;
 
@@ -90,31 +89,45 @@ function App() {
     if (document.getElementById(scriptId)) return;
 
     let activated = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const removeTriggers = () => {
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+      intentEvents.forEach((eventName) => window.removeEventListener(eventName, onIntent));
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+
     const inject = () => {
       if (activated) return;
       activated = true;
-      if (document.getElementById(scriptId)) return;
+      if (document.getElementById(scriptId)) {
+        removeTriggers();
+        return;
+      }
       const script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://elfsightcdn.com/platform.js';
       script.async = true;
       document.head.appendChild(script);
-      cleanup();
+      removeTriggers();
     };
 
-    const activateOnIntent = () => inject();
-    const events: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'keydown'];
-    events.forEach((eventName) => window.addEventListener(eventName, activateOnIntent, { passive: true }));
+    const onIntent = () => inject();
+    const intentEvents: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'keydown'];
+    intentEvents.forEach((eventName) => window.addEventListener(eventName, onIntent, { passive: true }));
 
-    // Safety net: if no interactions happen, still enable chat after the page settles.
-    const timer = window.setTimeout(inject, 12000);
+    const onScroll = () => inject();
+    window.addEventListener('scroll', onScroll, { passive: true });
 
-    const cleanup = () => {
-      window.clearTimeout(timer);
-      events.forEach((eventName) => window.removeEventListener(eventName, activateOnIntent));
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') inject();
     };
+    document.addEventListener('visibilitychange', onVisibility);
 
-    return cleanup;
+    fallbackTimer = window.setTimeout(inject, 5000);
+
+    return removeTriggers;
   }, [location.pathname]);
 
   React.useEffect(() => {
