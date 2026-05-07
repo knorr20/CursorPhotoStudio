@@ -41,7 +41,7 @@ const StudioFeatures = () => {
   return (
     <section id="features" className="py-20 bg-gray-50" ref={sectionRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`text-center mb-16 ${isVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
+        <div className={`text-center mb-16 ${isVisible ? 'animate-fade-in-up' : ''}`}>
           <h2 className="text-4xl font-heading font-black text-gray-900 mb-4">WHY CHOOSE OUR STUDIO</h2>
         </div>
 
@@ -50,7 +50,7 @@ const StudioFeatures = () => {
             <div
               key={index}
               className={`bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group ${
-                isVisible ? 'animate-fade-in-up' : 'scroll-hidden'
+                isVisible ? 'animate-fade-in-up' : ''
               }`}
               style={isVisible ? { animationDelay: `${index * 100}ms` } : undefined}
             >

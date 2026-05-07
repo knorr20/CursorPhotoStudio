@@ -51,21 +51,15 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">
         <Hero />
-        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[280px]" placeholderText="Loading studio features">
-          <Suspense fallback={deferredFallback}>
-            <StudioFeatures />
-          </Suspense>
-        </DeferredSection>
-        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[220px]" placeholderText="Loading pricing section">
-          <Suspense fallback={deferredFallback}>
-            <TariffSign />
-          </Suspense>
-        </DeferredSection>
-        <DeferredSection rootMargin="480px" minHeightClassName="min-h-[560px]" placeholderText="Loading equipment section">
-          <Suspense fallback={deferredFallback}>
-            <Equipment />
-          </Suspense>
-        </DeferredSection>
+        <Suspense fallback={deferredFallback}>
+          <StudioFeatures />
+        </Suspense>
+        <Suspense fallback={deferredFallback}>
+          <TariffSign />
+        </Suspense>
+        <Suspense fallback={deferredFallback}>
+          <Equipment />
+        </Suspense>
         <DeferredSection rootMargin="720px" minHeightClassName="min-h-[720px]" placeholderText="Loading calendar">
           <Suspense fallback={deferredFallback}>
             <Calendar

@@ -159,7 +159,7 @@ const Equipment = () => {
   return (
     <section id="equipment" className="pt-20 pb-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className={`text-center mb-16 ${headerVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
+        <div ref={headerRef} className={`text-center mb-16 ${headerVisible ? 'animate-fade-in-up' : ''}`}>
           <h2 className="text-4xl font-heading font-black text-gray-900 mb-4 uppercase">What's Included</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Everything in this list is part of every booking — no extras to rent.
@@ -173,7 +173,7 @@ const Equipment = () => {
               <div
                 key={index}
                 className={`bg-gray-50 p-6 hover:shadow-lg transition-shadow duration-300 ${
-                  gridVisible ? 'animate-fade-in-up' : 'scroll-hidden'
+                  gridVisible ? 'animate-fade-in-up' : ''
                 }`}
                 style={gridVisible ? { animationDelay: `${index * 80}ms` } : undefined}
               >
@@ -211,14 +211,14 @@ const Equipment = () => {
 
         {/* Paper Backdrop Options */}
         <div className="bg-gray-50 p-8" ref={backdropRef}>
-          <h3 className={`text-2xl font-heading font-black text-gray-900 mb-8 text-center ${backdropVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>Paper Backdrop Options</h3>
+          <h3 className={`text-2xl font-heading font-black text-gray-900 mb-8 text-center ${backdropVisible ? 'animate-fade-in-up' : ''}`}>Paper Backdrop Options</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {backdropOptions.map((option, index) => (
               <div
                 key={index}
                 className={`bg-white p-6 border-2 border-gray-200 hover:border-gray-300 transition-colors duration-200 text-center md:text-left ${
-                  backdropVisible ? 'animate-fade-in-up' : 'scroll-hidden'
+                  backdropVisible ? 'animate-fade-in-up' : ''
                 }`}
                 style={backdropVisible ? { animationDelay: `${index * 100}ms` } : undefined}
               >

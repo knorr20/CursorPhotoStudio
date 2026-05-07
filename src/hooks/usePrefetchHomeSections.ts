@@ -9,21 +9,38 @@ export function usePrefetchHomeSections(): void {
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
     if (conn?.saveData) return;
 
+    let prefetched = false;
+    let idleId: number | undefined;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
     const prefetchChunks = () => {
+      if (prefetched) return;
+      prefetched = true;
+      void import('../components/Calendar');
+      void import('../components/Contact');
       void import('../components/StudioFeatures');
       void import('../components/TariffSign');
       void import('../components/Equipment');
-      void import('../components/Calendar');
-      void import('../components/Contact');
     };
+
+    const onFirstInteraction = () => prefetchChunks();
+    window.addEventListener('scroll', onFirstInteraction, { passive: true });
+    window.addEventListener('pointerdown', onFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
 
     const idle = window.requestIdleCallback;
     if (typeof idle === 'function') {
-      const id = idle(prefetchChunks, { timeout: 3500 });
-      return () => window.cancelIdleCallback?.(id);
+      idleId = idle(prefetchChunks, { timeout: 2200 });
+    } else {
+      timerId = window.setTimeout(prefetchChunks, 1600);
     }
 
-    const timer = window.setTimeout(prefetchChunks, 2500);
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
+      if (timerId !== undefined) window.clearTimeout(timerId);
+      window.removeEventListener('scroll', onFirstInteraction);
+      window.removeEventListener('pointerdown', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+    };
   }, []);
 }

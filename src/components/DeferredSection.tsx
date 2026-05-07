@@ -44,7 +44,7 @@ const DeferredSection: React.FC<DeferredSectionProps> = ({
         children
       ) : (
         <div
-          className={`${minHeightClassName} rounded-md bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse`}
+          className={`${minHeightClassName} rounded-md border border-gray-100 bg-gray-50`}
           role="status"
           aria-live="polite"
           aria-label={placeholderText}

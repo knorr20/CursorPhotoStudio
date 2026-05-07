@@ -8,14 +8,14 @@ const TariffSign = () => {
   return (
     <section className="py-16 bg-studio-green" ref={sectionRef}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`text-center mb-12 ${isVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
+        <div className={`text-center mb-12 ${isVisible ? 'animate-fade-in-up' : ''}`}>
           <h2 className="text-4xl font-heading font-black text-white mb-4 uppercase">Studio Rental Rates</h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Weekday Rates */}
           <div
-            className={`bg-white/10 backdrop-blur-sm p-8 border border-white/20 ${isVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}
+            className={`bg-white/10 backdrop-blur-sm p-8 border border-white/20 ${isVisible ? 'animate-fade-in-up' : ''}`}
             style={isVisible ? { animationDelay: '150ms' } : undefined}
           >
             <div className="text-center mb-6">
@@ -51,7 +51,7 @@ const TariffSign = () => {
 
           {/* Weekend Rates */}
           <div
-            className={`bg-white/10 backdrop-blur-sm p-8 border border-white/20 ${isVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}
+            className={`bg-white/10 backdrop-blur-sm p-8 border border-white/20 ${isVisible ? 'animate-fade-in-up' : ''}`}
             style={isVisible ? { animationDelay: '300ms' } : undefined}
           >
             <div className="text-center mb-6">
