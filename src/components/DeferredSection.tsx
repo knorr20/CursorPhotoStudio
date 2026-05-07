@@ -6,12 +6,15 @@ type DeferredSectionProps = {
   rootMargin?: string;
   /** Placeholder min-height to reduce layout jumps before mount. */
   minHeightClassName?: string;
+  /** Optional accessible helper text shown while section is deferred. */
+  placeholderText?: string;
 };
 
 const DeferredSection: React.FC<DeferredSectionProps> = ({
   children,
   rootMargin = '320px',
   minHeightClassName = 'min-h-[220px]',
+  placeholderText = 'Loading section',
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
@@ -37,7 +40,16 @@ const DeferredSection: React.FC<DeferredSectionProps> = ({
 
   return (
     <div ref={anchorRef}>
-      {isVisible ? children : <div className={minHeightClassName} aria-hidden="true" />}
+      {isVisible ? (
+        children
+      ) : (
+        <div
+          className={`${minHeightClassName} rounded-md bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse`}
+          role="status"
+          aria-live="polite"
+          aria-label={placeholderText}
+        />
+      )}
     </div>
   );
 };

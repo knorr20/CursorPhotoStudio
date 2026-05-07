@@ -29,7 +29,7 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
 }) => {
   usePrefetchHomeSections();
 
-  const deferredFallback = <div className="min-h-[220px]" aria-hidden="true" />;
+  const deferredFallback = <div className="min-h-[220px] animate-pulse rounded-md bg-gray-100" aria-hidden="true" />;
 
   return (
     <div className="min-h-screen bg-white">
@@ -51,22 +51,22 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
       <Header onNavigateAndScroll={onNavigateAndScroll} />
       <main id="main-content">
         <Hero />
-        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[280px]">
+        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[280px]" placeholderText="Loading studio features">
           <Suspense fallback={deferredFallback}>
             <StudioFeatures />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[220px]">
+        <DeferredSection rootMargin="420px" minHeightClassName="min-h-[220px]" placeholderText="Loading pricing section">
           <Suspense fallback={deferredFallback}>
             <TariffSign />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="480px" minHeightClassName="min-h-[560px]">
+        <DeferredSection rootMargin="480px" minHeightClassName="min-h-[560px]" placeholderText="Loading equipment section">
           <Suspense fallback={deferredFallback}>
             <Equipment />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="720px" minHeightClassName="min-h-[720px]">
+        <DeferredSection rootMargin="720px" minHeightClassName="min-h-[720px]" placeholderText="Loading calendar">
           <Suspense fallback={deferredFallback}>
             <Calendar
               bookings={bookings}
@@ -75,11 +75,9 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
             />
           </Suspense>
         </DeferredSection>
-        <DeferredSection rootMargin="800px" minHeightClassName="min-h-[420px]">
-          <Suspense fallback={deferredFallback}>
-            <Contact />
-          </Suspense>
-        </DeferredSection>
+        <Suspense fallback={<div className="min-h-[420px] animate-pulse rounded-md bg-gray-100" aria-hidden="true" />}>
+          <Contact />
+        </Suspense>
       </main>
       <Footer onNavigateAndScroll={onNavigateAndScroll} />
     </div>

@@ -98,7 +98,7 @@ const Contact = () => {
   return (
     <section id="contact" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className={`text-center mb-16 ${headerVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
+        <div ref={headerRef} className={`text-center mb-16 ${headerVisible ? 'animate-fade-in-up' : ''}`}>
           <h2 className="text-4xl font-heading font-black text-gray-900 mb-4 uppercase">Contact Us</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Have questions about our photo and video studio rental? Get in touch with us today
@@ -107,7 +107,7 @@ const Contact = () => {
 
         <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <div className={contentVisible ? 'animate-fade-in-up' : 'scroll-hidden'} style={contentVisible ? { animationDelay: '100ms' } : undefined}>
+          <div className={contentVisible ? 'animate-fade-in-up' : ''} style={contentVisible ? { animationDelay: '100ms' } : undefined}>
             <h3 className="text-2xl font-heading font-black text-gray-900 mb-8">Contact details</h3>
             
             <div className="space-y-6">
@@ -174,7 +174,7 @@ const Contact = () => {
           </div>
 
           {/* Contact Form */}
-          <div className={contentVisible ? 'animate-fade-in-up' : 'scroll-hidden'} style={contentVisible ? { animationDelay: '250ms' } : undefined}>
+          <div className={contentVisible ? 'animate-fade-in-up' : ''} style={contentVisible ? { animationDelay: '250ms' } : undefined}>
             <h3 className="text-2xl font-heading font-black text-gray-900 mb-8">Send Us a Message</h3>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -310,7 +310,7 @@ const Contact = () => {
         </div>
 
         {/* Studio Location Section - Centered Below */}
-        <div ref={mapRef} className={`mt-16 max-w-4xl mx-auto ${mapVisible ? 'animate-fade-in-up' : 'scroll-hidden'}`}>
+        <div ref={mapRef} className={`mt-16 max-w-4xl mx-auto ${mapVisible ? 'animate-fade-in-up' : ''}`}>
           <h3 className="text-2xl font-heading font-black text-gray-900 mb-8 text-center">Studio Location</h3>
           <div className="bg-gray-50 p-6 border border-gray-200">
             <div className="relative w-full h-64 overflow-hidden mb-4">
