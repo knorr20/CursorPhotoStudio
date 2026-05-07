@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Instagram, ArrowRight } from 'lucide-react';
 
@@ -7,6 +7,8 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
+  const [footerLogoReady, setFooterLogoReady] = useState(false);
+
   return (
     <footer className="bg-studio-green text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,15 +17,16 @@ const Footer: React.FC<FooterProps> = ({ onNavigateAndScroll }) => {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <img
-                src="/IMG_2896-2-small.jpg"
-                srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x"
-                sizes="48px"
+                src="/IMG_2896-2.png"
                 alt="23 Photo Studio logo - Professional photo studio rental in North Hollywood, Los Angeles"
-                className="h-12 w-auto brightness-0 invert"
-                width={144}
-                height={139}
+                className={`h-12 w-auto transition-opacity duration-300 ${
+                  footerLogoReady ? 'opacity-100 brightness-0 invert' : 'opacity-0'
+                }`}
+                width={512}
+                height={496}
                 loading="eager"
                 decoding="sync"
+                onLoad={() => setFooterLogoReady(true)}
               />
             </div>
             <p className="text-gray-400 mb-4">

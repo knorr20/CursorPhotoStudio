@@ -9,6 +9,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [headerLogoReady, setHeaderLogoReady] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const isStudioPage = location.pathname === '/studio';
@@ -28,6 +29,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
   };
 
   const showSolid = !isHomePage || isScrolled || isMenuOpen;
+  const headerLogoFilterClass =
+    headerLogoReady && !showSolid ? 'brightness-0 invert' : '';
+  const headerLogoVisibility = headerLogoReady ? 'opacity-100' : 'opacity-0';
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -50,15 +54,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigateAndScroll }) => {
             aria-label="Go to 23 Photo Studio homepage"
           >
             <img
-              src="/IMG_2896-2-small.jpg"
-              srcSet="/IMG_2896-2-small.jpg 1x, /IMG_2896-2.jpg 2x"
-              sizes="40px"
+              src="/IMG_2896-2.png"
               alt="23 Photo Studio logo - Professional photo studio rental North Hollywood"
-              className={`h-10 w-auto transition-all duration-300 ${showSolid ? '' : 'brightness-0 invert'}`}
-              width={144}
-              height={139}
+              className={`h-10 w-auto transition-all duration-300 ${headerLogoVisibility} ${headerLogoFilterClass}`}
+              width={512}
+              height={496}
               fetchPriority="high"
               decoding="sync"
+              onLoad={() => setHeaderLogoReady(true)}
             />
           </button>
 
