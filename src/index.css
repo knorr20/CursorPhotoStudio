@@ -150,7 +150,7 @@
 }
 
 /* Lift Elfsight floating WhatsApp chat above the mobile sticky booking bar
-   so the Continue button remains tappable on phones. */
+   (bar is z-40; cookie banner in App is z-[60]) so the primary CTA stays tappable. */
 @media (max-width: 767px) {
   #whatsapp-chat-widget,
   iframe[src*="elfsight"][src*="whatsapp"],

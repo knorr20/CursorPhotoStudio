@@ -8,6 +8,11 @@ type DeferredSectionProps = {
   minHeightClassName?: string;
   /** Optional accessible helper text shown while section is deferred. */
   placeholderText?: string;
+  /**
+   * When true, mount children immediately on narrow viewports (max-width: 767px)
+   * so mobile-only UI (e.g. sticky booking bar) can appear before the user scrolls here.
+   */
+  eagerOnNarrowViewport?: boolean;
 };
 
 const DeferredSection: React.FC<DeferredSectionProps> = ({
@@ -15,12 +20,22 @@ const DeferredSection: React.FC<DeferredSectionProps> = ({
   rootMargin = '320px',
   minHeightClassName = 'min-h-[220px]',
   placeholderText = 'Loading section',
+  eagerOnNarrowViewport = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (isVisible) return;
+
+    if (eagerOnNarrowViewport && typeof window !== 'undefined') {
+      const mq = window.matchMedia('(max-width: 767px)');
+      if (mq.matches) {
+        setIsVisible(true);
+        return;
+      }
+    }
+
     const node = anchorRef.current;
     if (!node) return;
 
@@ -36,7 +51,7 @@ const DeferredSection: React.FC<DeferredSectionProps> = ({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [isVisible, rootMargin]);
+  }, [isVisible, rootMargin, eagerOnNarrowViewport]);
 
   return (
     <div ref={anchorRef}>

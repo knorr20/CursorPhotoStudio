@@ -6,7 +6,7 @@ import BookingConfirmationModal from './BookingConfirmationModal';
 const StripePaymentModal = lazy(() => import('./StripePaymentModal'));
 import TermsAndPrivacyLinks from './TermsAndPrivacyLinks';
 import BookingStepsIndicator from './BookingStepsIndicator';
-import MobileBookingBar from './MobileBookingBar';
+import MobileBookingBar, { type MobileBookingPhase } from './MobileBookingBar';
 import { getTimeValue, isWeekend, calculateDuration, calculatePrice } from '../utils/bookingCalculations';
 import { formatPhoneNumber, isValidPhone } from '../utils/phoneFormat';
 import { TIME_SLOTS, CLOSING_LABEL, HOURS_RANGE_LABEL } from '../utils/studioHours';
@@ -666,11 +666,54 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
     ? `${selectedStartTime} – pick end time`
     : null;
 
-  const mobileBarDisabledReason = !isBookingValid()
-    ? 'Select a start and end time'
-    : !agreedToTerms
-    ? 'Agree to terms to continue'
-    : '';
+  const mobilePhase: MobileBookingPhase = !selectedDate
+    ? 'need_date'
+    : !isBookingValid()
+      ? 'need_time'
+      : !agreedToTerms
+        ? 'need_terms'
+        : 'ready';
+
+  const mobileDateLine = mobilePhase === 'need_date' ? 'BOOK STUDIO' : selectedDateLabel;
+
+  const mobileTimeLine =
+    mobilePhase === 'need_date'
+      ? 'Select a date to begin'
+      : mobilePhase === 'need_time'
+        ? selectedTimeLabel ?? 'Pick a time'
+        : selectedTimeLabel ?? '';
+
+  const mobileBottomHint =
+    mobilePhase === 'need_time'
+      ? 'Select a start and end time'
+      : mobilePhase === 'need_terms'
+        ? 'Accept terms to continue'
+        : null;
+
+  const mobilePrimaryAriaLabel =
+    mobilePhase === 'need_date'
+      ? 'Scroll to calendar to choose a date'
+      : mobilePhase === 'need_time'
+        ? 'Scroll to time slots to pick start and end time'
+        : mobilePhase === 'need_terms'
+          ? 'Scroll to terms and agree to continue'
+          : 'Continue to enter your booking details';
+
+  const handleMobileBarPrimary = () => {
+    if (!selectedDate) {
+      setTimeout(() => {
+        calendarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+      return;
+    }
+    if (!isBookingValid()) {
+      setTimeout(() => {
+        timeSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+      return;
+    }
+    handleProceedToBooking();
+  };
 
   const handleEditDate = () => {
     setShowBookingForm(false);
@@ -691,7 +734,7 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
   };
 
   return (
-    <section id="booking" className="pt-10 pb-28 md:pb-20 bg-gray-50">
+    <section id="booking" className="pt-10 pb-10 md:pb-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-heading font-black text-gray-900 mb-3 uppercase">Book Your Studio Time</h2>
@@ -1326,17 +1369,16 @@ const Calendar: React.FC<CalendarProps> = ({ bookings, onBookingFinalized, strip
         bookingDetails={confirmedBookingDetails}
       />
 
-      {/* Mobile sticky CTA — shows when a date is picked and we're not in the form/payment step */}
-      {selectedDate && !showBookingForm && !showPaymentModal && !showConfirmationModal && (
+      {/* Mobile sticky CTA — guides through date → time → terms before the form */}
+      {!showBookingForm && !showPaymentModal && !showConfirmationModal && (
         <MobileBookingBar
-          dateLabel={selectedDateLabel}
-          timeLabel={selectedTimeLabel}
+          phase={mobilePhase}
+          dateLine={mobileDateLine}
+          timeLine={mobileTimeLine}
           priceTotal={price.total}
-          disabled={!isBookingValid()}
-          disabledReason={mobileBarDisabledReason}
-          agreedToTerms={agreedToTerms}
-          termsMissing={!agreedToTerms}
-          onContinue={handleProceedToBooking}
+          bottomHint={mobileBottomHint}
+          primaryAriaLabel={mobilePrimaryAriaLabel}
+          onPrimary={handleMobileBarPrimary}
         />
       )}
     </section>

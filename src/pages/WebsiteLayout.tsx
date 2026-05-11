@@ -32,7 +32,7 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
   const deferredFallback = <div className="min-h-[220px] animate-pulse rounded-md bg-gray-100" aria-hidden="true" />;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-28 md:pb-0">
       <PageSeo
         title={HOME_PAGE_SEO.title}
         description={HOME_PAGE_SEO.description}
@@ -60,7 +60,12 @@ const WebsiteLayout: React.FC<WebsiteLayoutProps> = ({
         <Suspense fallback={deferredFallback}>
           <Equipment />
         </Suspense>
-        <DeferredSection rootMargin="720px" minHeightClassName="min-h-[720px]" placeholderText="Loading calendar">
+        <DeferredSection
+          rootMargin="720px"
+          minHeightClassName="min-h-[720px]"
+          placeholderText="Loading calendar"
+          eagerOnNarrowViewport
+        >
           <Suspense fallback={deferredFallback}>
             <Calendar
               bookings={bookings}
