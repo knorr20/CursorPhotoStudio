@@ -9,12 +9,17 @@ const Hero = () => {
   const [showDirectionsModal, setShowDirectionsModal] = useState(false);
   const heroPrefs = useMemo(() => {
     if (typeof window === 'undefined') {
-      return { deferHeroVideo: false, startWithVideo: false };
+      return { deferHeroVideo: false, startWithVideo: false, videoPreload: 'metadata' as const };
     }
     const mobile = window.matchMedia('(max-width: 767px)').matches;
     const reducedData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    const deferHeroVideo = mobile || !!reducedData;
-    return { deferHeroVideo, startWithVideo: !deferHeroVideo };
+    // Mobile: load and autoplay without tap (unless Save-Data). Desktop unchanged.
+    const deferHeroVideo = !!reducedData;
+    return {
+      deferHeroVideo,
+      startWithVideo: !deferHeroVideo,
+      videoPreload: mobile ? ('auto' as const) : ('metadata' as const),
+    };
   }, []);
   const [shouldLoadVideo, setShouldLoadVideo] = useState(heroPrefs.startWithVideo);
 
@@ -43,7 +48,7 @@ const Hero = () => {
           loop
           muted
           playsInline
-          preload="none"
+          preload={heroPrefs.videoPreload}
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source src="/web4.mp4" media="(max-width: 767px)" type="video/mp4" />
